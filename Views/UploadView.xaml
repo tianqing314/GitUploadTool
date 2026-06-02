@@ -13,7 +13,7 @@
             <!-- Step Indicator -->
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Upload Project" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,16" />
+                    <TextBlock Text="上传项目" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,16" />
                     
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -32,10 +32,10 @@
                                 <Ellipse Fill="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=0}" />
                                 <TextBlock Text="1" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" />
                             </Grid>
-                            <TextBlock Text="Select" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            <TextBlock Text="选择" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
                         </StackPanel>
 
-                        <Border Grid.Column="1" Background="#21262D" Height="2" Width="40" VerticalAlignment="Center" />
+                        <Border Grid.Column="1" Background="#21262D" Height="2" VerticalAlignment="Center" Margin="4,0" />
 
                         <!-- Step 2 -->
                         <StackPanel Grid.Column="2" HorizontalAlignment="Center">
@@ -43,10 +43,10 @@
                                 <Ellipse Fill="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=1}" />
                                 <TextBlock Text="2" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" />
                             </Grid>
-                            <TextBlock Text="Check" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            <TextBlock Text="检查" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
                         </StackPanel>
 
-                        <Border Grid.Column="3" Background="#21262D" Height="2" Width="40" VerticalAlignment="Center" />
+                        <Border Grid.Column="3" Background="#21262D" Height="2" VerticalAlignment="Center" Margin="4,0" />
 
                         <!-- Step 3 -->
                         <StackPanel Grid.Column="4" HorizontalAlignment="Center">
@@ -54,10 +54,10 @@
                                 <Ellipse Fill="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=2}" />
                                 <TextBlock Text="3" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" />
                             </Grid>
-                            <TextBlock Text="Configure" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            <TextBlock Text="配置" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
                         </StackPanel>
 
-                        <Border Grid.Column="5" Background="#21262D" Height="2" Width="40" VerticalAlignment="Center" />
+                        <Border Grid.Column="5" Background="#21262D" Height="2" VerticalAlignment="Center" Margin="4,0" />
 
                         <!-- Step 4 -->
                         <StackPanel Grid.Column="6" HorizontalAlignment="Center">
@@ -65,7 +65,7 @@
                                 <Ellipse Fill="{Binding CurrentStep, Converter={StaticResource StepToColorConverter}, ConverterParameter=3}" />
                                 <TextBlock Text="4" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold" />
                             </Grid>
-                            <TextBlock Text="Upload" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                            <TextBlock Text="上传" FontSize="11" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,0" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -75,9 +75,9 @@
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16"
                     Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=0}">
                 <StackPanel>
-                    <TextBlock Text="Select Project Folder" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="选择项目文件夹" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     
-                    <Button Content="📁 Browse Folder"
+                    <Button Content="📁 浏览文件夹"
                             Height="40"
                             Command="{Binding BrowseFolderCommand}"
                             Style="{StaticResource MaterialDesignRaisedButton}"
@@ -88,7 +88,7 @@
                     <Border Background="#21262D" CornerRadius="6" Padding="16" Margin="0,12,0,0"
                             Visibility="{Binding ProjectPath, Converter={StaticResource NullToVisibilityConverter}}">
                         <StackPanel>
-                            <TextBlock Text="Project Information" FontSize="14" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,8" />
+                            <TextBlock Text="项目信息" FontSize="14" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,8" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="100" />
@@ -101,22 +101,22 @@
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" Foreground="#8B949E" />
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="名称：" Foreground="#8B949E" />
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ProjectName}" Foreground="White" />
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Path:" Foreground="#8B949E" />
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="路径：" Foreground="#8B949E" />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ProjectPath}" Foreground="White" TextTrimming="CharacterEllipsis" />
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Files:" Foreground="#8B949E" />
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="文件数：" Foreground="#8B949E" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FileCount}" Foreground="White" />
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Size:" Foreground="#8B949E" />
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="大小：" Foreground="#8B949E" />
                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ProjectSize}" Foreground="White" />
                             </Grid>
                         </StackPanel>
                     </Border>
 
-                    <Button Content="Next →"
+                    <Button Content="下一步 →"
                             Height="40" Margin="0,16,0,0"
                             Command="{Binding NextStepCommand}"
                             Style="{StaticResource MaterialDesignRaisedButton}"
@@ -130,9 +130,9 @@
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16"
                     Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=1}">
                 <StackPanel>
-                    <TextBlock Text="Check GitHub Repository" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="检查 GitHub 仓库" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     
-                    <Button Content="🔍 Check Repository"
+                    <Button Content="🔍 检查仓库"
                             Height="40"
                             Command="{Binding CheckRepoCommand}"
                             Style="{StaticResource MaterialDesignRaisedButton}"
@@ -148,7 +148,7 @@
                             <Border Background="#0D1117" CornerRadius="6" Padding="12" Margin="0,8,0,0"
                                     Visibility="{Binding RepoExistsOnGithub, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <StackPanel>
-                                    <TextBlock Text="✅ Repository exists" FontSize="14" Foreground="#56D364" />
+                                    <TextBlock Text="✅ 仓库已存在" FontSize="14" Foreground="#56D364" />
                                     <TextBlock>
                                         <Hyperlink NavigateUri="{Binding ExistingRepo.HtmlUrl}"
                                                    Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -161,8 +161,8 @@
 
                             <!-- Repository Not Found -->
                             <StackPanel Visibility="{Binding RepoExistsOnGithub, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                                <TextBlock Text="❌ Repository not found" FontSize="14" Foreground="#F85149" Margin="0,8,0,0" />
-                                <Button Content="➕ Create Repository"
+                                <TextBlock Text="❌ 仓库未找到" FontSize="14" Foreground="#F85149" Margin="0,8,0,0" />
+                                <Button Content="➕ 创建仓库"
                                         Height="36" Margin="0,8,0,0"
                                         Command="{Binding CreateRepoCommand}"
                                         Style="{StaticResource MaterialDesignRaisedButton}"
@@ -173,12 +173,12 @@
                     </Border>
 
                     <Grid Margin="0,16,0,0">
-                        <Button Content="← Back" Height="40"
+                        <Button Content="← 上一步" Height="40"
                                 Command="{Binding PreviousStepCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Foreground="#C9D1D9"
                                 HorizontalAlignment="Left" />
-                        <Button Content="Next →" Height="40"
+                        <Button Content="下一步 →" Height="40"
                                 Command="{Binding NextStepCommand}"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
                                 Background="#0366D6" Foreground="White"
@@ -192,23 +192,23 @@
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16"
                     Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=2}">
                 <StackPanel>
-                    <TextBlock Text="Configure Upload" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="配置上传" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="20" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Left Column -->
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Branch" FontSize="13" Foreground="#8B949E" Margin="0,0,0,4" />
+                            <TextBlock Text="分支" FontSize="13" Foreground="#8B949E" Margin="0,0,0,4" />
                             <TextBox Text="{Binding SelectedBranch}"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Foreground="White" />
 
-                            <TextBlock Text="Commit Message" FontSize="13" Foreground="#8B949E" Margin="0,12,0,4" />
+                            <TextBlock Text="提交信息" FontSize="13" Foreground="#8B949E" Margin="0,12,0,4" />
                             <TextBox Text="{Binding CommitMessage}"
                                      Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Foreground="White"
@@ -219,13 +219,13 @@
 
                         <!-- Right Column -->
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text=".gitignore Template" FontSize="13" Foreground="#8B949E" Margin="0,0,0,4" />
+                            <TextBlock Text=".gitignore 模板" FontSize="13" Foreground="#8B949E" Margin="0,0,0,4" />
                             <ComboBox ItemsSource="{Binding GitIgnoreTemplates}"
                                       SelectedItem="{Binding SelectedGitIgnore}"
                                       Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                       Foreground="White" />
 
-                            <TextBlock Text="Preview" FontSize="13" Foreground="#8B949E" Margin="0,12,0,4" />
+                            <TextBlock Text="预览" FontSize="13" Foreground="#8B949E" Margin="0,12,0,4" />
                             <Border Background="#0D1117" CornerRadius="4" Padding="8" Height="100">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <TextBlock Text="{Binding SelectedTemplate.Content}"
@@ -237,12 +237,12 @@
                     </Grid>
 
                     <Grid Margin="0,16,0,0">
-                        <Button Content="← Back" Height="40"
+                        <Button Content="← 上一步" Height="40"
                                 Command="{Binding PreviousStepCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Foreground="#C9D1D9"
                                 HorizontalAlignment="Left" />
-                        <Button Content="Next →" Height="40"
+                        <Button Content="下一步 →" Height="40"
                                 Command="{Binding NextStepCommand}"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
                                 Background="#0366D6" Foreground="White"
@@ -255,9 +255,9 @@
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16"
                     Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibilityConverter}, ConverterParameter=3}">
                 <StackPanel>
-                    <TextBlock Text="Upload Project" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="上传项目" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     
-                    <Button Content="🚀 Start Upload"
+                    <Button Content="🚀 开始上传"
                             Height="48" FontSize="16"
                             Command="{Binding UploadCommand}"
                             Style="{StaticResource MaterialDesignRaisedButton}"
@@ -317,7 +317,7 @@
                         </ScrollViewer>
                     </Border>
 
-                    <Button Content="← Back" Height="40" Margin="0,16,0,0"
+                    <Button Content="← 上一步" Height="40" Margin="0,16,0,0"
                             Command="{Binding PreviousStepCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             Foreground="#C9D1D9"
@@ -334,30 +334,30 @@
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 Width="400">
             <StackPanel>
-                <TextBlock Text="Create New Repository" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,16" />
+                <TextBlock Text="创建新仓库" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,16" />
 
-                <TextBlock Text="Repository Name" FontSize="12" Foreground="#8B949E" Margin="0,0,0,4" />
+                <TextBlock Text="仓库名称" FontSize="12" Foreground="#8B949E" Margin="0,0,0,4" />
                 <TextBox x:Name="RepoNameBox"
                          Text="{Binding ProjectName}"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Foreground="White" />
 
-                <TextBlock Text="Description (optional)" FontSize="12" Foreground="#8B949E" Margin="0,12,0,4" />
+                <TextBlock Text="描述（可选）" FontSize="12" Foreground="#8B949E" Margin="0,12,0,4" />
                 <TextBox x:Name="RepoDescBox"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Foreground="White" />
 
                 <CheckBox x:Name="PrivateCheck"
-                          Content="Make repository private"
+                          Content="设为私有仓库"
                           Foreground="#C9D1D9" Margin="0,12,0,0" />
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                    <Button Content="Cancel"
+                    <Button Content="取消"
                             Height="36" Margin="0,0,8,0"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             Foreground="#C9D1D9"
                             Click="CancelCreateRepo_Click" />
-                    <Button Content="Create"
+                    <Button Content="创建"
                             Height="36"
                             Style="{StaticResource MaterialDesignRaisedButton}"
                             Background="#2EA44F" Foreground="White"

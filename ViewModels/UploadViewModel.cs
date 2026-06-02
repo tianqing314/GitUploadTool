@@ -191,7 +191,7 @@ public class UploadViewModel : BindableBase
         var dialog = new CommonOpenFileDialog
         {
             IsFolderPicker = true,
-            Title = "Select Project Folder"
+            Title = "选择项目文件夹"
         };
 
         if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
@@ -216,7 +216,7 @@ public class UploadViewModel : BindableBase
         // Check if git repo
         IsGitRepo = await _gitService.IsGitRepositoryAsync(ProjectPath);
         
-        StatusMessage = $"Project loaded: {ProjectName}";
+        StatusMessage = $"已加载项目：{ProjectName}";
     }
 
     private async Task CheckRepoAsync()
@@ -224,7 +224,7 @@ public class UploadViewModel : BindableBase
         if (string.IsNullOrEmpty(ProjectName) || CurrentUser == null)
             return;
 
-        StatusMessage = "Checking repository on GitHub...";
+        StatusMessage = "正在检查 GitHub 仓库...";
         
         var exists = await _gitHubService.RepositoryExistsAsync(CurrentUser.Login, ProjectName);
         RepoExistsOnGithub = exists;
@@ -232,11 +232,11 @@ public class UploadViewModel : BindableBase
         if (exists)
         {
             ExistingRepo = await _gitHubService.GetRepositoryAsync(CurrentUser.Login, ProjectName);
-            StatusMessage = $"Repository found: {ExistingRepo?.FullName}";
+            StatusMessage = $"找到仓库：{ExistingRepo?.FullName}";
         }
         else
         {
-            StatusMessage = "Repository not found on GitHub. You can create it.";
+            StatusMessage = "在 GitHub 上未找到该仓库，您可以创建它。";
         }
     }
 
@@ -252,19 +252,19 @@ public class UploadViewModel : BindableBase
 
         if (confirmed)
         {
-            StatusMessage = "Creating repository...";
+            StatusMessage = "正在创建仓库...";
             var repo = await _gitHubService.CreateRepositoryAsync(name, description, isPrivate);
             
             if (repo != null)
             {
                 ExistingRepo = repo;
                 RepoExistsOnGithub = true;
-                StatusMessage = $"Repository created: {repo.HtmlUrl}";
-                CommitMessage = description ?? $"Initial commit for {name}";
+                StatusMessage = $"仓库已创建：{repo.HtmlUrl}";
+                CommitMessage = description ?? $"{name} 的初始提交";
             }
             else
             {
-                StatusMessage = "Failed to create repository";
+                StatusMessage = "创建仓库失败";
             }
         }
     }
@@ -276,7 +276,7 @@ public class UploadViewModel : BindableBase
 
         IsUploading = true;
         UploadProgress.Clear();
-        StatusMessage = "Uploading project...";
+        StatusMessage = "正在上传项目...";
 
         var progress = new Progress<UploadProgress>(p =>
         {
@@ -288,7 +288,7 @@ public class UploadViewModel : BindableBase
         });
 
         var commitMsg = string.IsNullOrEmpty(CommitMessage) 
-            ? (ExistingRepo.Description ?? $"Update from GitUploadTool")
+            ? (ExistingRepo.Description ?? "GitUploadTool 更新")
             : CommitMessage;
 
         // Apply .gitignore if selected
@@ -315,7 +315,7 @@ public class UploadViewModel : BindableBase
         var lastStep = steps.LastOrDefault();
         if (lastStep?.Status == StepStatus.Success)
         {
-            StatusMessage = "Upload completed successfully!";
+            StatusMessage = "上传完成！";
             
             // Save to recent projects
             await _recentProjectService.AddRecentProjectAsync(new RecentProject
@@ -329,7 +329,7 @@ public class UploadViewModel : BindableBase
         }
         else
         {
-            StatusMessage = $"Upload failed: {lastStep?.ErrorMessage}";
+            StatusMessage = $"上传失败：{lastStep?.ErrorMessage}";
         }
 
         IsUploading = false;

@@ -10,7 +10,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24">
             <!-- Welcome Card -->
-            <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
+            <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -25,13 +25,13 @@
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock FontSize="22" FontWeight="Bold" Foreground="White">
-                            <Run Text="Welcome back, " />
+                            <Run Text="欢迎回来，" />
                             <Run Text="{Binding CurrentUser.Login, Mode=OneWay}" Foreground="#0366D6" />
                         </TextBlock>
                         <TextBlock Text="{Binding CurrentUser.Name}" FontSize="14" Foreground="#8B949E" Margin="0,4,0,0" />
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <md:PackIcon Kind="SourceRepository" Foreground="#8B949E" VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding CurrentUser.PublicRepos, StringFormat='{}{0} public repos'}"
+                            <TextBlock Text="{Binding CurrentUser.PublicRepos, StringFormat='{}{0} 个公开仓库'}"
                                        FontSize="12" Foreground="#8B949E" Margin="4,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </StackPanel>
@@ -41,14 +41,14 @@
             <!-- Quick Actions -->
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Quick Actions" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="快速操作" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     <WrapPanel>
-                        <Button Content="📤 Upload Project" Height="40" Margin="0,0,8,0"
+                        <Button Content="📤 上传项目" Height="40" Margin="0,0,8,0"
                                 Style="{StaticResource MaterialDesignRaisedButton}"
                                 Background="#0366D6" Foreground="White"
                                 Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                 CommandParameter="UploadView" />
-                        <Button Content="🔄 Refresh" Height="40"
+                        <Button Content="🔄 刷新" Height="40"
                                 Command="{Binding RefreshCommand}"
                                 Style="{StaticResource MaterialDesignOutlinedButton}"
                                 Foreground="#C9D1D9" />
@@ -59,7 +59,7 @@
             <!-- Recent Projects -->
             <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Recent Projects" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="最近项目" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     
                     <ListView ItemsSource="{Binding RecentProjects}"
                               Background="Transparent"
@@ -92,7 +92,7 @@
                         </ListView.ItemTemplate>
                     </ListView>
 
-                    <TextBlock Text="No recent projects"
+                    <TextBlock Text="暂无最近项目"
                                FontSize="13" Foreground="#484F58"
                                HorizontalAlignment="Center"
                                Visibility="{Binding RecentProjects.Count, Converter={StaticResource InverseCountToVisibilityConverter}}" />
@@ -102,7 +102,7 @@
             <!-- Repositories -->
             <Border Background="#161B22" CornerRadius="8" Padding="20">
                 <StackPanel>
-                    <TextBlock Text="Your Repositories" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <TextBlock Text="您的仓库" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
                     
                     <ItemsControl ItemsSource="{Binding Repositories}">
                         <ItemsControl.ItemsPanel>
@@ -112,7 +112,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="#21262D" CornerRadius="6" Padding="12" Margin="0,0,8,8" Width="220">
+                                <Border Background="#21262D" CornerRadius="6" Padding="12" Margin="0,0,8,8" MinWidth="200" MaxWidth="280">
                                     <StackPanel>
                                         <TextBlock>
                                             <Hyperlink NavigateUri="{Binding HtmlUrl}"
@@ -132,10 +132,10 @@
                                                 <TextBlock FontSize="10" Foreground="White">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="Public" />
+                                                            <Setter Property="Text" Value="公开" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Private}" Value="True">
-                                                                    <Setter Property="Text" Value="Private" />
+                                                                    <Setter Property="Text" Value="私有" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>

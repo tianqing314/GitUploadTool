@@ -4,7 +4,7 @@ namespace GitUploadTool.ViewModels;
 
 public class CreateRepoDialogViewModel : BindableBase
 {
-    public string Title => "Create GitHub Repository";
+    public string Title => "创建 GitHub 仓库";
 
     private string _repositoryName = string.Empty;
     public string RepositoryName

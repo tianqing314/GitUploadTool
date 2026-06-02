@@ -33,7 +33,7 @@ public class SettingsViewModel : BindableBase
         set => SetProperty(ref _defaultBranch, value);
     }
 
-    private string _defaultCommitMessage = "Update from GitUploadTool";
+    private string _defaultCommitMessage = "GitUploadTool 更新";
     public string DefaultCommitMessage
     {
         get => _defaultCommitMessage;

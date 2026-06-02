@@ -80,7 +80,7 @@ public class GitService : IGitService
         if (string.IsNullOrEmpty(nameResult.Output.Trim()))
         {
             await RunGitCommandAsync(path, "config user.name \"GitUploadTool User\"");
-            Logger.Info("Set default git user.name");
+            Logger.Info("已设置默认 git user.name");
         }
 
         // Check if user.email is set
@@ -88,7 +88,7 @@ public class GitService : IGitService
         if (string.IsNullOrEmpty(emailResult.Output.Trim()))
         {
             await RunGitCommandAsync(path, "config user.email \"gituploadtool@users.noreply.github.com\"");
-            Logger.Info("Set default git user.email");
+            Logger.Info("已设置默认 git user.email");
         }
     }
 
@@ -154,7 +154,7 @@ public class GitService : IGitService
         var steps = new List<UploadProgress>();
 
         // Step 1: Init
-        var initProgress = new UploadProgress { Step = UploadStep.Init, Status = StepStatus.Running, Message = "Initializing git repository..." };
+        var initProgress = new UploadProgress { Step = UploadStep.Init, Status = StepStatus.Running, Message = "正在初始化 Git 仓库..." };
         progress?.Report(initProgress);
         steps.Add(initProgress);
 
@@ -163,13 +163,13 @@ public class GitService : IGitService
             if (!await InitRepositoryAsync(path))
             {
                 initProgress.Status = StepStatus.Failed;
-                initProgress.ErrorMessage = "Failed to initialize git repository";
+                initProgress.ErrorMessage = "初始化 Git 仓库失败";
                 progress?.Report(initProgress);
                 return steps;
             }
         }
         initProgress.Status = StepStatus.Success;
-        initProgress.Message = "Git repository ready";
+        initProgress.Message = "Git 仓库已就绪";
         progress?.Report(initProgress);
 
         // Check for files exceeding GitHub's 100 MB limit before staging
@@ -184,13 +184,13 @@ public class GitService : IGitService
             if (largeFiles.Count > 0)
             {
                 var fileList = string.Join("\n", largeFiles.Select(f => $"  • {Path.GetRelativePath(path, f.Path)} ({f.Size / (1024.0 * 1024.0):F2} MB)"));
-                var errorMsg = $"Found {largeFiles.Count} file(s) exceeding GitHub's 100 MB limit:\n{fileList}\n\n" +
-                               "Consider using Git LFS (https://git-lfs.github.com) or removing these files before uploading.";
+                var errorMsg = $"发现 {largeFiles.Count} 个文件超过 GitHub 的 100MB 限制：\n{fileList}\n\n" +
+                               "请考虑使用 Git LFS (https://git-lfs.github.com) 或在上传前移除这些文件。";
                 var largeFileProgress = new UploadProgress
                 {
                     Step = UploadStep.Init,
                     Status = StepStatus.Failed,
-                    Message = "Large files detected",
+                    Message = "检测到大文件",
                     ErrorMessage = errorMsg
                 };
                 progress?.Report(largeFileProgress);
@@ -204,49 +204,49 @@ public class GitService : IGitService
         }
 
         // Step 2: Add
-        var addProgress = new UploadProgress { Step = UploadStep.Add, Status = StepStatus.Running, Message = "Staging files..." };
+        var addProgress = new UploadProgress { Step = UploadStep.Add, Status = StepStatus.Running, Message = "正在暂存文件..." };
         progress?.Report(addProgress);
         steps.Add(addProgress);
 
         if (!await AddFilesAsync(path))
         {
             addProgress.Status = StepStatus.Failed;
-            addProgress.ErrorMessage = "Failed to stage files";
+            addProgress.ErrorMessage = "暂存文件失败";
             progress?.Report(addProgress);
             return steps;
         }
         addProgress.Status = StepStatus.Success;
-        addProgress.Message = "Files staged";
+        addProgress.Message = "文件已暂存";
         progress?.Report(addProgress);
 
         // Step 3: Commit
-        var commitProgress = new UploadProgress { Step = UploadStep.Commit, Status = StepStatus.Running, Message = "Committing changes..." };
+        var commitProgress = new UploadProgress { Step = UploadStep.Commit, Status = StepStatus.Running, Message = "正在提交更改..." };
         progress?.Report(commitProgress);
         steps.Add(commitProgress);
 
         if (!await CommitAsync(path, commitMessage))
         {
             commitProgress.Status = StepStatus.Failed;
-            commitProgress.ErrorMessage = "Failed to commit changes";
+            commitProgress.ErrorMessage = "提交更改失败";
             progress?.Report(commitProgress);
             return steps;
         }
         commitProgress.Status = StepStatus.Success;
-        commitProgress.Message = "Changes committed";
+        commitProgress.Message = "更改已提交";
         progress?.Report(commitProgress);
 
         // Ensure local branch name matches the target branch
         await RunGitCommandAsync(path, $"branch -M {branch}");
 
         // Step 4: Remote & Push
-        var pushProgress = new UploadProgress { Step = UploadStep.Push, Status = StepStatus.Running, Message = "Adding remote and pushing..." };
+        var pushProgress = new UploadProgress { Step = UploadStep.Push, Status = StepStatus.Running, Message = "正在添加远程仓库并推送..." };
         progress?.Report(pushProgress);
         steps.Add(pushProgress);
 
         if (!await AddRemoteAsync(path, remoteUrl, token))
         {
             pushProgress.Status = StepStatus.Failed;
-            pushProgress.ErrorMessage = "Failed to add remote";
+            pushProgress.ErrorMessage = "添加远程仓库失败";
             progress?.Report(pushProgress);
             return steps;
         }
@@ -256,17 +256,17 @@ public class GitService : IGitService
         {
             pushProgress.Status = StepStatus.Failed;
             pushProgress.ErrorMessage = string.IsNullOrEmpty(pushResult.Error)
-                ? "Failed to push to remote"
-                : $"Push failed: {pushResult.Error}";
+                ? "推送到远程仓库失败"
+                : $"推送失败：{pushResult.Error}";
             progress?.Report(pushProgress);
             return steps;
         }
         pushProgress.Status = StepStatus.Success;
-        pushProgress.Message = "Pushed to remote";
+        pushProgress.Message = "已推送到远程仓库";
         progress?.Report(pushProgress);
 
         // Complete
-        var completeProgress = new UploadProgress { Step = UploadStep.Complete, Status = StepStatus.Success, Message = "Upload complete!" };
+        var completeProgress = new UploadProgress { Step = UploadStep.Complete, Status = StepStatus.Success, Message = "上传完成！" };
         progress?.Report(completeProgress);
         steps.Add(completeProgress);
 
@@ -290,7 +290,7 @@ public class GitService : IGitService
 
             using var process = Process.Start(psi);
             if (process == null)
-                return (false, "", "Failed to start git process");
+                return (false, "", "启动 git 进程失败");
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
             
@@ -309,7 +309,7 @@ public class GitService : IGitService
             catch (OperationCanceledException)
             {
                 process.Kill();
-                return (false, "", $"Command timed out after {timeoutSeconds} seconds");
+                return (false, "", $"命令在 {timeoutSeconds} 秒后超时");
             }
         }
         catch (Exception ex)

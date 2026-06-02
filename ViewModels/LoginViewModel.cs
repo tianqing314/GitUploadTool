@@ -41,12 +41,12 @@ public class LoginViewModel : BindableBase
     {
         if (string.IsNullOrWhiteSpace(token))
         {
-            StatusMessage = "Please enter your Personal Access Token";
+            StatusMessage = "请输入您的个人访问令牌";
             return;
         }
 
         IsLoading = true;
-        StatusMessage = "Verifying token...";
+        StatusMessage = "正在验证令牌...";
 
         try
         {
@@ -57,7 +57,7 @@ public class LoginViewModel : BindableBase
             var user = await _authService.GetCurrentUserAsync();
             if (user != null)
             {
-                StatusMessage = $"Welcome, {user.Login}!";
+                StatusMessage = $"欢迎，{user.Login}！";
                 Logger.Info($"User {user.Login} logged in successfully");
                 await Task.Delay(500); // Brief delay to show success message
                 LoginSucceeded?.Invoke(this, EventArgs.Empty);
@@ -66,7 +66,7 @@ public class LoginViewModel : BindableBase
             {
                 // Remove invalid token
                 await _tokenService.DeleteTokenAsync();
-                StatusMessage = "Invalid token. Please check and try again.";
+                StatusMessage = "令牌无效，请检查后重试。";
                 Logger.Warn("Login failed - invalid token");
             }
         }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="GitUploadTool - Login"
+        Title="GitUploadTool - 登录"
         Height="500" Width="400"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
@@ -44,14 +44,14 @@
                           HorizontalAlignment="Center"
                           Margin="0,0,0,8" />
 
-               <TextBlock Text="Upload your projects to GitHub"
+               <TextBlock Text="将您的项目上传到 GitHub"
                           FontSize="13"
                           Foreground="#8B949E"
                           HorizontalAlignment="Center"
                           Margin="0,0,0,20" />
 
                <!-- Token Input -->
-               <TextBlock Text="GitHub Personal Access Token"
+               <TextBlock Text="GitHub 个人访问令牌"
                           FontSize="12"
                           Foreground="#8B949E"
                           Margin="0,0,0,8" />
@@ -69,12 +69,12 @@
                <!-- Help Link -->
                <TextBlock HorizontalAlignment="Center" Margin="0,0,0,16">
                    <Hyperlink Foreground="#0366D6" Command="{Binding OpenHelpCommand}">
-                       <TextBlock Text="How to get a token?" FontSize="11" />
+                       <TextBlock Text="如何获取令牌？" FontSize="11" />
                    </Hyperlink>
                </TextBlock>
 
                <!-- Login Button -->
-               <Button Content="Sign in"
+               <Button Content="登录"
                        Height="44"
                        FontSize="14"
                        FontWeight="SemiBold"

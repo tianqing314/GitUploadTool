@@ -6,7 +6,7 @@ public class AboutViewModel : BindableBase
 {
     public string AppName => "GitUploadTool";
     public string Version => "1.0.0";
-    public string Description => "A desktop tool to upload local projects to GitHub easily.";
+    public string Description => "一个轻松将本地项目上传到 GitHub 的桌面工具。";
     public string GitHubUrl => "https://github.com/yourusername/GitUploadTool";
 
     public ICommand OpenUrlCommand { get; }

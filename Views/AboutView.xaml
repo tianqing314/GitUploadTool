@@ -17,24 +17,24 @@
                 </Viewbox>
 
                 <TextBlock Text="GitUploadTool" FontSize="28" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="14" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,16" />
+                <TextBlock Text="{Binding Version, StringFormat='版本 {0}'}" FontSize="14" Foreground="#8B949E" HorizontalAlignment="Center" Margin="0,4,0,16" />
                 <TextBlock Text="{Binding Description}" FontSize="13" Foreground="#C9D1D9" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,24" />
 
                 <Separator Background="#21262D" Margin="0,0,0,16" />
 
-                <TextBlock Text="How to Use" FontSize="16" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                <TextBlock Text="使用说明" FontSize="16" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                 <StackPanel Margin="0,0,0,16">
-                    <TextBlock Text="1. Sign in with your GitHub account" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
-                    <TextBlock Text="2. Select a local project folder to upload" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
-                    <TextBlock Text="3. Check if a GitHub repository exists (auto-create if not)" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
-                    <TextBlock Text="4. Configure branch and commit message" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
-                    <TextBlock Text="5. Click Upload to push your project to GitHub" FontSize="13" Foreground="#C9D1D9" />
+                    <TextBlock Text="1. 使用 GitHub 账号登录" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
+                    <TextBlock Text="2. 选择要上传的本地项目文件夹" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
+                    <TextBlock Text="3. 检查 GitHub 仓库是否存在（不存在则自动创建）" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
+                    <TextBlock Text="4. 配置分支和提交信息" FontSize="13" Foreground="#C9D1D9" Margin="0,0,0,6" />
+                    <TextBlock Text="5. 点击上传将项目推送到 GitHub" FontSize="13" Foreground="#C9D1D9" />
                 </StackPanel>
 
                 <Separator Background="#21262D" Margin="0,0,0,16" />
 
-                <Button Content="View on GitHub" Height="36"
+                <Button Content="在 GitHub 上查看" Height="36"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{Binding GitHubUrl}"
                         Style="{StaticResource MaterialDesignOutlinedButton}"

@@ -6,7 +6,8 @@
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="GitUploadTool"
-        Height="700" Width="1100"
+        Height="750" Width="1150"
+        MinHeight="600" MinWidth="900"
         WindowStartupLocation="CenterScreen"
         Background="#0D1117">
 
@@ -15,9 +16,9 @@
            <Style x:Key="NavButton" TargetType="Button">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="#C9D1D9" />
-                <Setter Property="Height" Value="44" />
+                <Setter Property="Height" Value="40" />
                 <Setter Property="HorizontalContentAlignment" Value="Left" />
-                <Setter Property="Padding" Value="16,0" />
+                <Setter Property="Padding" Value="12,0" />
                 <Setter Property="FontSize" Value="14" />
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
@@ -42,41 +43,47 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="220" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- Left Navigation Panel -->
         <Border Grid.Column="0" Background="#161B22">
-            <StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
                 <!-- User Info -->
-                <Border Background="#21262D" Padding="16" Margin="0,0,0,1">
+                <Border Grid.Row="0" Background="#21262D" Padding="16" Margin="0,0,0,1">
                     <StackPanel>
-                        <Ellipse Width="48" Height="48" Margin="0,0,0,8">
+                        <Ellipse Width="44" Height="44" Margin="0,0,0,8">
                             <Ellipse.Fill>
                                 <ImageBrush ImageSource="{Binding CurrentUser.AvatarUrl}" />
                             </Ellipse.Fill>
                         </Ellipse>
                         <TextBlock Text="{Binding CurrentUser.Login}"
-                                   FontSize="16"
+                                   FontSize="15"
                                    FontWeight="SemiBold"
                                    Foreground="White" />
                         <TextBlock Text="{Binding CurrentUser.Name}"
-                                   FontSize="12"
+                                   FontSize="11"
                                    Foreground="#8B949E" />
                         <TextBlock>
                             <Hyperlink NavigateUri="{Binding CurrentUser.HtmlUrl}"
                                        Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                        CommandParameter="{Binding CurrentUser.HtmlUrl}">
-                                <TextBlock Text="View on GitHub" FontSize="11" Foreground="#0366D6" />
+                                <TextBlock Text="在GitHub上查看" FontSize="10" Foreground="#0366D6" />
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>
                 </Border>
 
                 <!-- Navigation Menu -->
-                <StackPanel Margin="0,16,0,0">
-                    <Button Content="🏠  Home"
+                <StackPanel Grid.Row="1" Margin="0,16,0,0">
+                    <Button Content="🏠  首页"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="HomeView">
                         <Button.Style>
@@ -91,7 +98,7 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Content="📤  Upload"
+                    <Button Content="📤  上传"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="UploadView">
                         <Button.Style>
@@ -106,7 +113,7 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Content="⚙️  Settings"
+                    <Button Content="⚙️  设置"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="SettingsView">
                         <Button.Style>
@@ -121,7 +128,7 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Content="ℹ️  About"
+                    <Button Content="ℹ️  关于"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="AboutView">
                         <Button.Style>
@@ -138,14 +145,14 @@
                 </StackPanel>
 
                 <!-- Logout Button -->
-                <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,16">
+                <StackPanel Grid.Row="2" Margin="0,0,0,16">
                     <Separator Background="#21262D" Margin="16,0" />
-                    <Button Content="🚪  Logout"
+                    <Button Content="🚪  退出登录"
                             Style="{StaticResource NavButton}"
                             Command="{Binding LogoutCommand}"
                             Foreground="#F85149" />
                 </StackPanel>
-            </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Main Content Area -->
