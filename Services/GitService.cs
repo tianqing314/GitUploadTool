@@ -120,7 +120,8 @@ public class GitService : IGitService
     public async Task<(bool Success, string Error)> PushAsync(string path, string branch = "main", string? token = null)
     {
         // Authentication is handled via token embedded in the remote URL (added by AddRemoteAsync)
-        var pushCommand = $"push -u origin {branch}";
+        // Use --force to overwrite remote content (e.g. auto-generated README, .gitignore, LICENSE)
+        var pushCommand = $"push -u --force origin {branch}";
         
         var result = await RunGitCommandAsync(path, pushCommand, timeoutSeconds: 300);
         if (result.Success)
