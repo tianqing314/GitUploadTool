@@ -96,11 +96,15 @@ public class GitService : IGitService
         // Remove existing remote if any
         await RunGitCommandAsync(path, "remote remove origin");
         
-        // Embed token in URL for authentication
+        // Embed token in URL and append .git suffix for git compatibility
         var authenticatedUrl = remoteUrl;
+        if (!authenticatedUrl.EndsWith(".git"))
+        {
+            authenticatedUrl += ".git";
+        }
         if (!string.IsNullOrEmpty(token))
         {
-            authenticatedUrl = remoteUrl.Replace("https://", $"https://x-access-token:{token}@");
+            authenticatedUrl = authenticatedUrl.Replace("https://", $"https://x-access-token:{token}@");
         }
         
         var result = await RunGitCommandAsync(path, $"remote add origin {authenticatedUrl}");
@@ -113,7 +117,7 @@ public class GitService : IGitService
         return false;
     }
 
-    public async Task<bool> PushAsync(string path, string branch = "main", string? token = null)
+    public async Task<(bool Success, string Error)> PushAsync(string path, string branch = "main", string? token = null)
     {
         // Authentication is handled via token embedded in the remote URL (added by AddRemoteAsync)
         var pushCommand = $"push -u origin {branch}";
@@ -122,11 +126,11 @@ public class GitService : IGitService
         if (result.Success)
         {
             Logger.Info($"Pushed to origin/{branch}");
-            return true;
+            return (true, string.Empty);
         }
-        Logger.Error($"Failed to push: {result.Error}");
-        Logger.Error($"Git output: {result.Output}");
-        return false;
+        var errorMsg = string.IsNullOrEmpty(result.Error) ? result.Output : result.Error;
+        Logger.Error($"Failed to push: {errorMsg}");
+        return (false, errorMsg);
     }
 
     public async Task<bool> HasRemoteAsync(string path)
@@ -198,6 +202,9 @@ public class GitService : IGitService
         commitProgress.Message = "Changes committed";
         progress?.Report(commitProgress);
 
+        // Ensure local branch name matches the target branch
+        await RunGitCommandAsync(path, $"branch -M {branch}");
+
         // Step 4: Remote & Push
         var pushProgress = new UploadProgress { Step = UploadStep.Push, Status = StepStatus.Running, Message = "Adding remote and pushing..." };
         progress?.Report(pushProgress);
@@ -211,10 +218,13 @@ public class GitService : IGitService
             return steps;
         }
 
-        if (!await PushAsync(path, branch, token))
+        var pushResult = await PushAsync(path, branch, token);
+        if (!pushResult.Success)
         {
             pushProgress.Status = StepStatus.Failed;
-            pushProgress.ErrorMessage = "Failed to push to remote";
+            pushProgress.ErrorMessage = string.IsNullOrEmpty(pushResult.Error)
+                ? "Failed to push to remote"
+                : $"Push failed: {pushResult.Error}";
             progress?.Report(pushProgress);
             return steps;
         }
