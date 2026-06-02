@@ -9,7 +9,7 @@ public interface IGitService
     Task<bool> InitRepositoryAsync(string path);
     Task<bool> AddFilesAsync(string path);
     Task<bool> CommitAsync(string path, string message);
-    Task<bool> AddRemoteAsync(string path, string remoteUrl);
+    Task<bool> AddRemoteAsync(string path, string remoteUrl, string? token = null);
     Task<bool> PushAsync(string path, string branch = "main", string? token = null);
     Task<bool> HasRemoteAsync(string path);
     Task<string?> GetRemoteUrlAsync(string path);

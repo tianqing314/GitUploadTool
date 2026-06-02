@@ -91,12 +91,19 @@ public class GitService : IGitService
         }
     }
 
-    public async Task<bool> AddRemoteAsync(string path, string remoteUrl)
+    public async Task<bool> AddRemoteAsync(string path, string remoteUrl, string? token = null)
     {
         // Remove existing remote if any
         await RunGitCommandAsync(path, "remote remove origin");
         
-        var result = await RunGitCommandAsync(path, $"remote add origin {remoteUrl}");
+        // Embed token in URL for authentication
+        var authenticatedUrl = remoteUrl;
+        if (!string.IsNullOrEmpty(token))
+        {
+            authenticatedUrl = remoteUrl.Replace("https://", $"https://x-access-token:{token}@");
+        }
+        
+        var result = await RunGitCommandAsync(path, $"remote add origin {authenticatedUrl}");
         if (result.Success)
         {
             Logger.Info($"Remote added: {remoteUrl}");
@@ -108,18 +115,8 @@ public class GitService : IGitService
 
     public async Task<bool> PushAsync(string path, string branch = "main", string? token = null)
     {
-        string pushCommand;
-        
-        if (!string.IsNullOrEmpty(token))
-        {
-            // Use token authentication via http.extraHeader
-            var authHeader = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"x-access-token:{token}"));
-            pushCommand = $"-c http.extraHeader=\"Authorization: Basic {authHeader}\" push -u origin {branch}";
-        }
-        else
-        {
-            pushCommand = $"push -u origin {branch}";
-        }
+        // Authentication is handled via token embedded in the remote URL (added by AddRemoteAsync)
+        var pushCommand = $"push -u origin {branch}";
         
         var result = await RunGitCommandAsync(path, pushCommand, timeoutSeconds: 300);
         if (result.Success)
@@ -206,7 +203,7 @@ public class GitService : IGitService
         progress?.Report(pushProgress);
         steps.Add(pushProgress);
 
-        if (!await AddRemoteAsync(path, remoteUrl))
+        if (!await AddRemoteAsync(path, remoteUrl, token))
         {
             pushProgress.Status = StepStatus.Failed;
             pushProgress.ErrorMessage = "Failed to add remote";
