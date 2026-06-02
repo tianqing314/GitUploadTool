@@ -27,7 +27,7 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Proxy Address" FontSize="12" Foreground="#8B949E" Margin="0,0,0,4" />
                             <TextBox Text="{Binding ProxyAddress}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Foreground="White"
                                      md:HintAssist.Hint="e.g., http://proxy.example.com" />
                         </StackPanel>
@@ -35,7 +35,7 @@
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Port" FontSize="12" Foreground="#8B949E" Margin="0,0,0,4" />
                             <TextBox Text="{Binding ProxyPort}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Foreground="White"
                                      md:HintAssist.Hint="e.g., 8080" />
                         </StackPanel>
@@ -58,14 +58,14 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Default Branch" FontSize="12" Foreground="#8B949E" Margin="0,0,0,4" />
                             <TextBox Text="{Binding DefaultBranch}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Foreground="White" />
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Default Commit Message" FontSize="12" Foreground="#8B949E" Margin="0,0,0,4" />
                             <TextBox Text="{Binding DefaultCommitMessage}"
-                                     Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                      Foreground="White" />
                         </StackPanel>
                     </Grid>

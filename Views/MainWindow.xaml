@@ -77,24 +77,64 @@
                 <!-- Navigation Menu -->
                 <StackPanel Margin="0,16,0,0">
                     <Button Content="🏠  Home"
-                            Style="{StaticResource NavButton}"
                             Command="{Binding NavigateCommand}"
-                            CommandParameter="HomeView" />
+                            CommandParameter="HomeView">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.SelectedView, RelativeSource={RelativeSource AncestorType=Window}}" Value="HomeView">
+                                        <Setter Property="Background" Value="#30363D" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
                     <Button Content="📤  Upload"
-                            Style="{StaticResource NavButton}"
                             Command="{Binding NavigateCommand}"
-                            CommandParameter="UploadView" />
+                            CommandParameter="UploadView">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.SelectedView, RelativeSource={RelativeSource AncestorType=Window}}" Value="UploadView">
+                                        <Setter Property="Background" Value="#30363D" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
                     <Button Content="⚙️  Settings"
-                            Style="{StaticResource NavButton}"
                             Command="{Binding NavigateCommand}"
-                            CommandParameter="SettingsView" />
+                            CommandParameter="SettingsView">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.SelectedView, RelativeSource={RelativeSource AncestorType=Window}}" Value="SettingsView">
+                                        <Setter Property="Background" Value="#30363D" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
                     <Button Content="ℹ️  About"
-                            Style="{StaticResource NavButton}"
                             Command="{Binding NavigateCommand}"
-                            CommandParameter="AboutView" />
+                            CommandParameter="AboutView">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.SelectedView, RelativeSource={RelativeSource AncestorType=Window}}" Value="AboutView">
+                                        <Setter Property="Background" Value="#30363D" />
+                                        <Setter Property="Foreground" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </StackPanel>
 
                 <!-- Logout Button -->
