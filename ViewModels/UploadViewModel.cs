@@ -17,6 +17,7 @@ public class UploadViewModel : BindableBase
     private readonly IGitIgnoreService _gitIgnoreService;
     private readonly ISettingsService _settingsService;
     private readonly IAuthenticationService _authService;
+    private readonly ITokenService _tokenService;
 
     private string _projectPath = string.Empty;
     public string ProjectPath
@@ -156,7 +157,8 @@ public class UploadViewModel : BindableBase
         IRecentProjectService recentProjectService,
         IGitIgnoreService gitIgnoreService,
         ISettingsService settingsService,
-        IAuthenticationService authService)
+        IAuthenticationService authService,
+        ITokenService tokenService)
     {
         _gitHubService = gitHubService;
         _gitService = gitService;
@@ -164,6 +166,7 @@ public class UploadViewModel : BindableBase
         _gitIgnoreService = gitIgnoreService;
         _settingsService = settingsService;
         _authService = authService;
+        _tokenService = tokenService;
 
         BrowseFolderCommand = new RelayCommand(BrowseFolder);
         CheckRepoCommand = new RelayCommand(async () => await CheckRepoAsync());
@@ -298,11 +301,15 @@ public class UploadViewModel : BindableBase
             }
         }
 
+        // Get token for authentication
+        var token = await _tokenService.GetTokenAsync();
+        
         var steps = await _gitService.UploadProjectAsync(
             ProjectPath,
             ExistingRepo.HtmlUrl,
             SelectedBranch,
             commitMsg,
+            token,
             progress);
 
         var lastStep = steps.LastOrDefault();

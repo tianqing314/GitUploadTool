@@ -106,15 +106,29 @@ public class GitService : IGitService
         return false;
     }
 
-    public async Task<bool> PushAsync(string path, string branch = "main")
+    public async Task<bool> PushAsync(string path, string branch = "main", string? token = null)
     {
-        var result = await RunGitCommandAsync(path, $"push -u origin {branch}");
+        string pushCommand;
+        
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Use token authentication via http.extraHeader
+            var authHeader = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"x-access-token:{token}"));
+            pushCommand = $"-c http.extraHeader=\"Authorization: Basic {authHeader}\" push -u origin {branch}";
+        }
+        else
+        {
+            pushCommand = $"push -u origin {branch}";
+        }
+        
+        var result = await RunGitCommandAsync(path, pushCommand, timeoutSeconds: 300);
         if (result.Success)
         {
             Logger.Info($"Pushed to origin/{branch}");
             return true;
         }
         Logger.Error($"Failed to push: {result.Error}");
+        Logger.Error($"Git output: {result.Output}");
         return false;
     }
 
@@ -132,7 +146,7 @@ public class GitService : IGitService
 
     public async Task<List<UploadProgress>> UploadProjectAsync(
         string path, string remoteUrl, string branch, string commitMessage,
-        IProgress<UploadProgress>? progress = null)
+        string? token = null, IProgress<UploadProgress>? progress = null)
     {
         var steps = new List<UploadProgress>();
 
@@ -200,7 +214,7 @@ public class GitService : IGitService
             return steps;
         }
 
-        if (!await PushAsync(path, branch))
+        if (!await PushAsync(path, branch, token))
         {
             pushProgress.Status = StepStatus.Failed;
             pushProgress.ErrorMessage = "Failed to push to remote";
