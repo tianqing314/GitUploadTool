@@ -1,0 +1,116 @@
+<Window x:Class="GitUploadTool.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="GitUploadTool"
+        Height="700" Width="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D1117">
+
+   <Window.Resources>
+       <ResourceDictionary>
+           <Style x:Key="NavButton" TargetType="Button">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="#C9D1D9" />
+                <Setter Property="Height" Value="44" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Padding" Value="16,0" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#21262D" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Navigation Panel -->
+        <Border Grid.Column="0" Background="#161B22">
+            <StackPanel>
+                <!-- User Info -->
+                <Border Background="#21262D" Padding="16" Margin="0,0,0,1">
+                    <StackPanel>
+                        <Ellipse Width="48" Height="48" Margin="0,0,0,8">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="{Binding CurrentUser.AvatarUrl}" />
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <TextBlock Text="{Binding CurrentUser.Login}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="White" />
+                        <TextBlock Text="{Binding CurrentUser.Name}"
+                                   FontSize="12"
+                                   Foreground="#8B949E" />
+                        <TextBlock>
+                            <Hyperlink NavigateUri="{Binding CurrentUser.HtmlUrl}"
+                                       Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                       CommandParameter="{Binding CurrentUser.HtmlUrl}">
+                                <TextBlock Text="View on GitHub" FontSize="11" Foreground="#0366D6" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation Menu -->
+                <StackPanel Margin="0,16,0,0">
+                    <Button Content="🏠  Home"
+                            Style="{StaticResource NavButton}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="HomeView" />
+
+                    <Button Content="📤  Upload"
+                            Style="{StaticResource NavButton}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="UploadView" />
+
+                    <Button Content="⚙️  Settings"
+                            Style="{StaticResource NavButton}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="SettingsView" />
+
+                    <Button Content="ℹ️  About"
+                            Style="{StaticResource NavButton}"
+                            Command="{Binding NavigateCommand}"
+                            CommandParameter="AboutView" />
+                </StackPanel>
+
+                <!-- Logout Button -->
+                <StackPanel VerticalAlignment="Bottom" Margin="0,0,0,16">
+                    <Separator Background="#21262D" Margin="16,0" />
+                    <Button Content="🚪  Logout"
+                            Style="{StaticResource NavButton}"
+                            Command="{Binding LogoutCommand}"
+                            Foreground="#F85149" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Border Grid.Column="1" Background="#0D1117">
+            <ContentControl Content="{Binding CurrentView}" />
+        </Border>
+    </Grid>
+</Window>

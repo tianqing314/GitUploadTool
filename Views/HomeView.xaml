@@ -1,0 +1,161 @@
+<UserControl x:Class="GitUploadTool.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             Background="#0D1117">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <!-- Welcome Card -->
+            <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Ellipse Grid.Column="0" Width="64" Height="64" Margin="0,0,16,0">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="{Binding CurrentUser.AvatarUrl}" />
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontSize="22" FontWeight="Bold" Foreground="White">
+                            <Run Text="Welcome back, " />
+                            <Run Text="{Binding CurrentUser.Login, Mode=OneWay}" Foreground="#0366D6" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding CurrentUser.Name}" FontSize="14" Foreground="#8B949E" Margin="0,4,0,0" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <md:PackIcon Kind="SourceRepository" Foreground="#8B949E" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding CurrentUser.PublicRepos, StringFormat='{}{0} public repos'}"
+                                       FontSize="12" Foreground="#8B949E" Margin="4,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Quick Actions -->
+            <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Quick Actions" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    <WrapPanel>
+                        <Button Content="📤 Upload Project" Height="40" Margin="0,0,8,0"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                Background="#0366D6" Foreground="White" />
+                        <Button Content="🔄 Refresh" Height="40"
+                                Command="{Binding RefreshCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Foreground="#C9D1D9" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Recent Projects -->
+            <Border Background="#161B22" CornerRadius="8" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Recent Projects" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    
+                    <ListView ItemsSource="{Binding RecentProjects}"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Visibility="{Binding RecentProjects.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#21262D" CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                            <TextBlock Text="{Binding Path}" FontSize="12" Foreground="#8B949E" Margin="0,2,0,0" />
+                                            <TextBlock Text="{Binding UploadTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                       FontSize="11" Foreground="#484F58" Margin="0,2,0,0" />
+                                        </StackPanel>
+
+                                        <Button Grid.Column="1" Content="🔗"
+                                                Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding RepoUrl}"
+                                                Background="Transparent" Foreground="#0366D6"
+                                                Visibility="{Binding RepoUrl, Converter={StaticResource NullToVisibilityConverter}}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock Text="No recent projects"
+                               FontSize="13" Foreground="#484F58"
+                               HorizontalAlignment="Center"
+                               Visibility="{Binding RecentProjects.Count, Converter={StaticResource InverseCountToVisibilityConverter}}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Repositories -->
+            <Border Background="#161B22" CornerRadius="8" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Your Repositories" FontSize="16" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+                    
+                    <ItemsControl ItemsSource="{Binding Repositories}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#21262D" CornerRadius="6" Padding="12" Margin="0,0,8,8" Width="220">
+                                    <StackPanel>
+                                        <TextBlock>
+                                            <Hyperlink NavigateUri="{Binding HtmlUrl}"
+                                                       Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                       CommandParameter="{Binding HtmlUrl}">
+                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#0366D6" />
+                                            </Hyperlink>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Description}"
+                                                   FontSize="12" Foreground="#8B949E"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxHeight="36"
+                                                   Visibility="{Binding Description, Converter={StaticResource NullToVisibilityConverter}}" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <Border Background="{Binding Private, Converter={StaticResource BoolToColorConverter}}"
+                                                    CornerRadius="10" Padding="6,2">
+                                                <TextBlock FontSize="10" Foreground="White">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Public" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Private}" Value="True">
+                                                                    <Setter Property="Text" Value="Private" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                            <TextBlock Text="{Binding Language}" FontSize="11" Foreground="#8B949E" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ProgressBar IsIndeterminate="True"
+                                 Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                 Foreground="#0366D6"
+                                 Width="40" Height="40"
+                                 HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
