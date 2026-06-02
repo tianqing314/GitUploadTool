@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using GitUploadTool.Models;
 using NLog;
 
@@ -170,6 +171,37 @@ public class GitService : IGitService
         initProgress.Status = StepStatus.Success;
         initProgress.Message = "Git repository ready";
         progress?.Report(initProgress);
+
+        // Check for files exceeding GitHub's 100 MB limit before staging
+        try
+        {
+            const long githubFileSizeLimit = 100L * 1024 * 1024; // 100 MB
+            var largeFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories)
+                .Where(f => new FileInfo(f).Length > githubFileSizeLimit)
+                .Select(f => new { Path = f, Size = new FileInfo(f).Length })
+                .ToList();
+
+            if (largeFiles.Count > 0)
+            {
+                var fileList = string.Join("\n", largeFiles.Select(f => $"  • {Path.GetRelativePath(path, f.Path)} ({f.Size / (1024.0 * 1024.0):F2} MB)"));
+                var errorMsg = $"Found {largeFiles.Count} file(s) exceeding GitHub's 100 MB limit:\n{fileList}\n\n" +
+                               "Consider using Git LFS (https://git-lfs.github.com) or removing these files before uploading.";
+                var largeFileProgress = new UploadProgress
+                {
+                    Step = UploadStep.Init,
+                    Status = StepStatus.Failed,
+                    Message = "Large files detected",
+                    ErrorMessage = errorMsg
+                };
+                progress?.Report(largeFileProgress);
+                steps.Add(largeFileProgress);
+                return steps;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex, "Failed to scan for large files; proceeding anyway");
+        }
 
         // Step 2: Add
         var addProgress = new UploadProgress { Step = UploadStep.Add, Status = StepStatus.Running, Message = "Staging files..." };
