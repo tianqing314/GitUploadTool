@@ -25,6 +25,12 @@ public interface IPlatformService
     /// <summary>创建仓库</summary>
     Task<RepositoryInfo?> CreatePlatformRepositoryAsync(string name, string? description, bool isPrivate);
 
+    /// <summary>删除仓库</summary>
+    Task<bool> DeleteRepositoryAsync(string owner, string name);
+
+    /// <summary>修改仓库私有状态</summary>
+    Task<bool> UpdateRepoVisibilityAsync(string owner, string name, bool isPrivate);
+
     /// <summary>验证 Token 是否有效</summary>
     Task<bool> ValidateTokenAsync(string token);
 }

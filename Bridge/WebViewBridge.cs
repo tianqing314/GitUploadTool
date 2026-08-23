@@ -785,7 +785,7 @@ public class WebViewBridge
         {
             "gitlab" => new GitLabService(tokenService, httpClient,
                 string.IsNullOrWhiteSpace(gitlabUrl) ? "https://gitlab.com" : gitlabUrl),
-            _ => _serviceProvider.GetRequiredService<GitHubService>(), // 默认 GitHub
+            _ => _serviceProvider.GetRequiredService<IGitHubService>(), // 默认 GitHub
         };
     }
 }

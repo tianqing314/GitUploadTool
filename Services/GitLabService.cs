@@ -326,6 +326,43 @@ public class GitLabService : IPlatformService
         }
     }
 
+    public async Task<bool> DeleteRepositoryAsync(string owner, string name)
+    {
+        try
+        {
+            var request = await CreateRequestAsync(HttpMethod.Delete, $"/projects/{Uri.EscapeDataString(owner)}%2F{Uri.EscapeDataString(name)}");
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, $"Failed to delete repository {owner}/{name}");
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateRepoVisibilityAsync(string owner, string name, bool isPrivate)
+    {
+        try
+        {
+            var request = await CreateRequestAsync(new HttpMethod("PUT"), $"/projects/{Uri.EscapeDataString(owner)}%2F{Uri.EscapeDataString(name)}");
+            var visibility = isPrivate ? "private" : "public";
+            var body = new { visibility };
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(body),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, $"Failed to update repository visibility {owner}/{name}");
+            return false;
+        }
+    }
+
     // ===== GitLab 专用模型 =====
     private class GitLabUser
     {

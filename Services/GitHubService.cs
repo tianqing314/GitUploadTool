@@ -96,7 +96,7 @@ public class GitHubService : IGitHubService, IPlatformService
         };
     }
 
-    public async Task<RepositoryInfo?> CreatePlatformRepositoryAsync(string name, string description, bool isPrivate)
+    public async Task<RepositoryInfo?> CreatePlatformRepositoryAsync(string name, string? description, bool isPrivate)
     {
         var repo = await CreateRepositoryAsync(name, description, isPrivate);
         if (repo == null) return null;
@@ -219,5 +219,41 @@ public class GitHubService : IGitHubService, IPlatformService
     {
         var repository = await GetRepositoryAsync(owner, repo);
         return repository != null;
+    }
+
+    public async Task<bool> DeleteRepositoryAsync(string owner, string repo)
+    {
+        try
+        {
+            var request = await CreateRequestAsync(HttpMethod.Delete, $"/repos/{owner}/{repo}");
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, $"Failed to delete repository {owner}/{repo}");
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateRepoVisibilityAsync(string owner, string repo, bool isPrivate)
+    {
+        try
+        {
+            var request = await CreateRequestAsync(new HttpMethod("PATCH"), $"/repos/{owner}/{repo}");
+            var body = new { @private = isPrivate };
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(body),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, $"Failed to update repository visibility {owner}/{repo}");
+            return false;
+        }
     }
 }

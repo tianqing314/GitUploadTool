@@ -2,7 +2,7 @@ using GitUploadTool.Models;
 
 namespace GitUploadTool.Services;
 
-public interface IGitHubService
+public interface IGitHubService : IPlatformService
 {
     Task<GitHubUser?> GetUserAsync();
     Task<List<GitHubRepository>> GetRepositoriesAsync();
