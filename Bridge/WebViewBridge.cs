@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -193,6 +194,8 @@ public class WebViewBridge
                 Send("largeFileAction", new { action = "excludeFiles", success = true, count = files.Count });
                 break;
             }
+
+            case "loadHistory":
                 _ = Task.Run(async () => await LoadHistoryAsync());
                 break;
 
@@ -290,12 +293,17 @@ public class WebViewBridge
                 return;
             }
 
+            // 读取前端传来的平台信息
+            var platform = root.TryGetProperty("platform", out var pProp) ? pProp.GetString() : "github";
+            var gitlabUrl = root.TryGetProperty("gitlabUrl", out var gProp) ? gProp.GetString() : string.Empty;
+
             // 保存 token 并用 /user 接口验证有效性
             var tokenService = _serviceProvider.GetRequiredService<ITokenService>();
             await tokenService.SaveTokenAsync(token);
 
-            var auth = _serviceProvider.GetRequiredService<IAuthenticationService>();
-            _currentUser = await auth.GetCurrentUserAsync();
+            // 根据平台获取用户信息
+            var platformService = ResolvePlatformService(platform, gitlabUrl);
+            _currentUser = await platformService.GetUserAsync();
 
             if (_currentUser == null)
             {
@@ -305,7 +313,15 @@ public class WebViewBridge
                 return;
             }
 
-            Logger.Info("Token login success: {Login}", _currentUser.Login);
+            // 保存平台偏好
+            var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
+            await settingsService.SaveSettingsAsync(new AppSettings
+            {
+                Platform = platform,
+                GitLabInstanceUrl = string.IsNullOrEmpty(gitlabUrl) ? null : gitlabUrl,
+            });
+
+            Logger.Info("Token login success: {Login} on {Platform}", _currentUser.Login, platform);
             Send("tokenLoginSuccess", new { user = _currentUser });
             Send("loginSuccess", new { user = _currentUser });
         }
@@ -338,8 +354,9 @@ public class WebViewBridge
     {
         try
         {
-            var gh = _serviceProvider.GetRequiredService<IGitHubService>();
-            var repos = await gh.GetRepositoriesAsync();
+            var settings = await _serviceProvider.GetRequiredService<ISettingsService>().GetSettingsAsync();
+            var platform = ResolvePlatformService(settings.Platform, settings.GitLabInstanceUrl);
+            var repos = await platform.GetPlatformRepositoriesAsync();
             Send("repositories", new { success = true, items = repos });
         }
         catch (Exception ex)
@@ -468,11 +485,14 @@ public class WebViewBridge
 
             Send("uploadProgress", new { status = "正在检查仓库...", subStatus = repoName, progress = 5 });
 
-            // 检查/创建仓库
-            var gh = _serviceProvider.GetRequiredService<IGitHubService>();
-            var repos = await gh.GetRepositoriesAsync();
+            // 根据保存的设置解析平台
+            var settings = await _serviceProvider.GetRequiredService<ISettingsService>().GetSettingsAsync();
+            var platform = ResolvePlatformService(settings.Platform, settings.GitLabInstanceUrl);
+
+            // 检查/创建仓库（平台无关）
+            var repos = await platform.GetPlatformRepositoriesAsync();
             var existing = repos.FirstOrDefault(r => r.Name.Equals(repoName, StringComparison.OrdinalIgnoreCase));
-            GitHubRepository? repo;
+            RepositoryInfo? repo;
             if (existing != null)
             {
                 repo = existing;
@@ -481,10 +501,10 @@ public class WebViewBridge
             else
             {
                 Send("uploadProgress", new { status = "正在创建仓库...", subStatus = repoName, progress = 10 });
-                repo = await gh.CreateRepositoryAsync(repoName, cfg.description, cfg.visibility == "private");
+                repo = await platform.CreatePlatformRepositoryAsync(repoName, cfg.description, cfg.visibility == "private");
                 if (repo == null)
                 {
-                    Send("uploadResult", new { success = false, error = $"创建仓库 {repoName} 失败" });
+                    Send("uploadResult", new { success = false, error = $"在 {platform.PlatformName} 创建仓库 {repoName} 失败" });
                     return;
                 }
             }
@@ -552,7 +572,10 @@ public class WebViewBridge
             var tokenSvc = _serviceProvider.GetRequiredService<ITokenService>();
             var token = await tokenSvc.GetTokenAsync();
 
-            var remoteUrl = $"https://github.com/{_currentUser.Login}/{repoName}";
+            // 构建 remote URL：GitHub 用 github.com，GitLab 用实例地址
+            var remoteUrl = settings.Platform?.ToLowerInvariant() == "gitlab"
+                ? $"{settings.GitLabInstanceUrl}/{_currentUser.Login}/{repoName}"
+                : $"https://github.com/{_currentUser.Login}/{repoName}";
             var progress = new Progress<UploadProgress>(p =>
             {
                 var pct = p.Step switch
@@ -748,5 +771,21 @@ public class WebViewBridge
         {
             Logger.Error(ex, "OpenUrl failed: {Url}", url);
         }
+    }
+
+    /// <summary>
+    /// 根据平台标识解析对应的 IPlatformService 实例
+    /// </summary>
+    private IPlatformService ResolvePlatformService(string? platform, string? gitlabUrl)
+    {
+        var tokenService = _serviceProvider.GetRequiredService<ITokenService>();
+        var httpClient = _serviceProvider.GetRequiredService<HttpClient>();
+
+        return (platform?.ToLowerInvariant()) switch
+        {
+            "gitlab" => new GitLabService(tokenService, httpClient,
+                string.IsNullOrWhiteSpace(gitlabUrl) ? "https://gitlab.com" : gitlabUrl),
+            _ => _serviceProvider.GetRequiredService<GitHubService>(), // 默认 GitHub
+        };
     }
 }

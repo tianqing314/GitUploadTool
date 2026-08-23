@@ -12,6 +12,7 @@ namespace GitUploadTool.Controls;
 /// </summary>
 public partial class WebView2Control : UserControl
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
     private WebView2? _webView;
     private bool _initialized;
 
@@ -26,7 +27,7 @@ public partial class WebView2Control : UserControl
         Loaded += OnLoaded;
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Loaded 可能触发多次（窗口最大化/最小化等），只初始化一次
         if (_initialized || _webView != null) return;
@@ -37,51 +38,42 @@ public partial class WebView2Control : UserControl
             // 创建 WebView2 并添加到 Grid 中
             var webView = new WebView2();
             var grid = this.FindName("RootGrid") as Grid;
-            if (grid != null)
-            {
-                grid.Children.Add(webView);
-                webView.SetValue(Grid.RowSpanProperty, 2); // 占满整个 Grid
-            }
+            grid?.Children.Add(webView);
             _webView = webView;
 
-            // 等待 CoreWebView2 初始化完成
-            webView.EnsureCoreWebView2Async().ContinueWith(t =>
+            // 必须用 await（而非 ContinueWith）确保在 UI 线程上正确完成初始化
+            await webView.EnsureCoreWebView2Async();
+
+            if (webView.CoreWebView2 == null)
             {
-                if (t.Exception != null)
-                {
-                    NLog.LogManager.GetCurrentClassLogger().Error(t.Exception, "EnsureCoreWebView2Async failed");
-                    return;
-                }
+                Logger.Error("CoreWebView2 is null after initialization");
+                _initialized = false;
+                return;
+            }
 
-                if (webView.CoreWebView2 == null)
-                {
-                    NLog.LogManager.GetCurrentClassLogger().Error("CoreWebView2 is null after initialization");
-                    return;
-                }
+            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+            webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
 
-                webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
-                webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            // 先通知宿主绑定桥接，再加载页面
+            CoreInitialized?.Invoke(webView);
 
-                // 先通知宿主绑定桥接，再加载页面
-                CoreInitialized?.Invoke(webView);
-
-                var indexPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html");
-                if (File.Exists(indexPath))
-                {
-                    webView.CoreWebView2.Navigate("file:///" + indexPath.Replace('\\', '/'));
-                    NLog.LogManager.GetCurrentClassLogger().Info("Frontend loaded: {Path}", indexPath);
-                }
-                else
-                {
-                    NLog.LogManager.GetCurrentClassLogger().Error("Frontend not found: {Path}", indexPath);
-                    webView.CoreWebView2.NavigateToString("<html><body><h1>Error</h1><p>Frontend files not found.</p></body></html>");
-                }
-            }, System.Threading.Tasks.TaskScheduler.FromCurrentSynchronizationContext());
+            var indexPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html");
+            if (File.Exists(indexPath))
+            {
+                // 用 Uri 对象确保路径转义正确（中文/空格等）
+                webView.Source = new Uri(indexPath);
+                Logger.Info("Frontend loaded: {Path}", indexPath);
+            }
+            else
+            {
+                Logger.Error("Frontend not found: {Path}", indexPath);
+                webView.CoreWebView2.NavigateToString("<html><body><h1>Error</h1><p>Frontend files not found.</p></body></html>");
+            }
         }
         catch (Exception ex)
         {
             _initialized = false; // 允许下次重试
-            NLog.LogManager.GetCurrentClassLogger().Error(ex, "WebView2 init failed");
+            Logger.Error(ex, "WebView2 init failed");
         }
     }
 

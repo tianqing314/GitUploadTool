@@ -21,4 +21,10 @@ public class AppSettings
 
     [JsonPropertyName("defaultGitignore")]
     public string? DefaultGitignore { get; set; }
+
+    [JsonPropertyName("platform")]
+    public string Platform { get; set; } = "github";
+
+    [JsonPropertyName("gitlabInstanceUrl")]
+    public string? GitLabInstanceUrl { get; set; }
 }

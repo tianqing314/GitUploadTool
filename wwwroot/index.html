@@ -26,7 +26,15 @@
                     <div style="flex: 1; height: 1px; background: var(--border);"></div>
                 </div>
 
-                <input type="text" id="tokenInput" class="form-input" placeholder="输入 GitHub Personal Access Token">
+                <input type="text" id="tokenInput" class="form-input" placeholder="输入 GitHub / GitLab Personal Access Token">
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <label style="flex: 1; font-size: 12px; color: var(--text-3);">平台：</label>
+                    <select id="loginPlatform" class="form-input" style="flex: 2; font-size: 13px; padding: 6px;">
+                        <option value="github">GitHub</option>
+                        <option value="gitlab">GitLab / 自建</option>
+                    </select>
+                </div>
+                <input type="text" id="gitlabUrlInput" class="form-input" placeholder="GitLab 实例地址（默认 https://gitlab.com）" style="display: none; font-size: 13px; padding: 6px;" value="https://gitlab.com">
                 <button class="btn btn-secondary" id="btnTokenLogin">
                     <span class="btn-icon">🔑</span>
                     使用 Token 登录

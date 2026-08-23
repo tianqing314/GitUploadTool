@@ -6,12 +6,15 @@ using NLog;
 
 namespace GitUploadTool.Services;
 
-public class GitHubService : IGitHubService
+/// <summary>
+/// GitHub 平台服务实现
+/// </summary>
+public class GitHubService : IGitHubService, IPlatformService
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly ITokenService _tokenService;
     private readonly HttpClient _httpClient;
-    private const string BaseUrl = "https://api.github.com";
+    private const string BaseUrlConst = "https://api.github.com";
 
     public GitHubService(ITokenService tokenService, HttpClient httpClient)
     {
@@ -19,16 +22,26 @@ public class GitHubService : IGitHubService
         _httpClient = httpClient;
     }
 
+    // ===== IPlatformService 元数据 =====
+    public string PlatformName => "GitHub";
+    public string BaseUrl => BaseUrlConst;
+    public string AuthUrl => "https://github.com/login/oauth/authorize";
+    public string TokenUrl => "https://github.com/login/oauth/access_token";
+    public string UserAgent => "GitUploadTool";
+    public string AcceptHeader => "application/vnd.github.v3+json";
+
+    // ===== 共用请求构造 =====
     private async Task<HttpRequestMessage> CreateRequestAsync(HttpMethod method, string url)
     {
         var token = await _tokenService.GetTokenAsync();
         var request = new HttpRequestMessage(method, $"{BaseUrl}{url}");
         request.Headers.Add("Authorization", $"token {token}");
-        request.Headers.Add("User-Agent", "GitUploadTool");
-        request.Headers.Add("Accept", "application/vnd.github.v3+json");
+        request.Headers.Add("User-Agent", UserAgent);
+        request.Headers.Add("Accept", AcceptHeader);
         return request;
     }
 
+    // ===== IPlatformService =====
     public async Task<GitHubUser?> GetUserAsync()
     {
         try
@@ -52,6 +65,73 @@ public class GitHubService : IGitHubService
         }
     }
 
+    public async Task<List<RepositoryInfo>> GetPlatformRepositoriesAsync()
+    {
+        var repos = await GetRepositoriesAsync();
+        return repos.Select(r => new RepositoryInfo
+        {
+            Name = r.Name ?? "",
+            FullName = r.FullName ?? "",
+            Description = r.Description ?? "",
+            CloneUrl = r.HtmlUrl ?? "",
+            HtmlUrl = r.HtmlUrl ?? "",
+            IsPrivate = r.Private,
+            DefaultBranch = "main",
+        }).ToList();
+    }
+
+    public async Task<RepositoryInfo?> GetPlatformRepositoryAsync(string owner, string name)
+    {
+        var repo = await GetRepositoryAsync(owner, name);
+        if (repo == null) return null;
+
+        return new RepositoryInfo
+        {
+            Name = repo.Name ?? "",
+            FullName = repo.FullName ?? "",
+            Description = repo.Description ?? "",
+            CloneUrl = repo.HtmlUrl ?? "",
+            HtmlUrl = repo.HtmlUrl ?? "",
+            IsPrivate = repo.Private,
+        };
+    }
+
+    public async Task<RepositoryInfo?> CreatePlatformRepositoryAsync(string name, string description, bool isPrivate)
+    {
+        var repo = await CreateRepositoryAsync(name, description, isPrivate);
+        if (repo == null) return null;
+
+        return new RepositoryInfo
+        {
+            Name = repo.Name ?? "",
+            FullName = repo.FullName ?? "",
+            Description = repo.Description ?? "",
+            CloneUrl = repo.HtmlUrl ?? "",
+            HtmlUrl = repo.HtmlUrl ?? "",
+            IsPrivate = repo.Private,
+        };
+    }
+
+    public async Task<bool> ValidateTokenAsync(string token)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}/user");
+            request.Headers.Add("Authorization", $"token {token}");
+            request.Headers.Add("User-Agent", UserAgent);
+            request.Headers.Add("Accept", AcceptHeader);
+
+            var response = await _httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "ValidateToken failed");
+            return false;
+        }
+    }
+
+    // ===== IGitHubService 原有接口实现 =====
     public async Task<List<GitHubRepository>> GetRepositoriesAsync()
     {
         try
