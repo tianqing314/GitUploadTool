@@ -21,7 +21,7 @@ x64/
 x86/
 [Ww][Ii][Nn]32/
 [Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
+[Aa][Rm][Mm]64/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -198,14 +198,6 @@ ClientBin/
 *.publishsettings
 orleans.codegen.cs
 
-# Including strong name files can present a security risk
-# (https://github.com/github/gitignore/pull/2483#issue-259490424)
-#*.snk
-
-# Since there are multiple workflows, uncomment next line to ignore bower_components
-# (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
-#bower_components/
-
 # RIA/Silverlight projects
 Generated_Code/
 
@@ -272,10 +264,6 @@ paket-files/
 __pycache__/
 *.pyc
 
-# Cake - Uncomment if you are using it
-# tools/**
-# !tools/packages.config
-
 # Tabs Studio
 *.tss
 
@@ -316,4 +304,4 @@ health/
 MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
-.ionide/.zcode/
+.ionide/

@@ -18,4 +18,7 @@ public class AppSettings
 
     [JsonPropertyName("autoPush")]
     public bool AutoPush { get; set; } = true;
+
+    [JsonPropertyName("defaultGitignore")]
+    public string? DefaultGitignore { get; set; }
 }

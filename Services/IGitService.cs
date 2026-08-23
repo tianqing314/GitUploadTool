@@ -1,3 +1,4 @@
+using System.IO;
 using GitUploadTool.Models;
 
 namespace GitUploadTool.Services;
@@ -7,7 +8,9 @@ public interface IGitService
     Task<bool> IsGitInstalledAsync();
     Task<bool> IsGitRepositoryAsync(string path);
     Task<bool> InitRepositoryAsync(string path);
-    Task<bool> AddFilesAsync(string path);
+    Task<bool> AddFilesAsync(string path, IProgress<UploadProgress>? progress = null);
+    Task<bool> EnsureGitLfsInstalledAsync(string path);
+    Task<bool> TrackLargeFilesWithLfsAsync(string path, List<FileInfo> files);
     Task<bool> CommitAsync(string path, string message);
     Task<bool> AddRemoteAsync(string path, string remoteUrl, string? token = null);
     Task<(bool Success, string Error)> PushAsync(string path, string branch = "main", string? token = null);

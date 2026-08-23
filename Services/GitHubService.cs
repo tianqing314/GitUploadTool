@@ -23,7 +23,7 @@ public class GitHubService : IGitHubService
     {
         var token = await _tokenService.GetTokenAsync();
         var request = new HttpRequestMessage(method, $"{BaseUrl}{url}");
-        request.Headers.Add("Authorization", $"Bearer {token}");
+        request.Headers.Add("Authorization", $"token {token}");
         request.Headers.Add("User-Agent", "GitUploadTool");
         request.Headers.Add("Accept", "application/vnd.github.v3+json");
         return request;

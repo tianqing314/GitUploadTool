@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitUploadTool</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div id="page-login" class="page active">
+        <div class="login-card fade-in">
+            <div class="login-logo">📦</div>
+            <h1 class="login-title">GitUploadTool</h1>
+            <p class="login-subtitle">将本地项目一键上传到 GitHub</p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn btn-primary" id="btnOAuthLogin">
+                    <span class="btn-icon">🌐</span>
+                    使用浏览器授权登录
+                </button>
+
+                <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+                    <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                    <span style="color: var(--text-3); font-size: 13px;">或</span>
+                    <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                </div>
+
+                <input type="text" id="tokenInput" class="form-input" placeholder="输入 GitHub Personal Access Token">
+                <button class="btn btn-secondary" id="btnTokenLogin">
+                    <span class="btn-icon">🔑</span>
+                    使用 Token 登录
+                </button>
+            </div>
+
+            <div id="loginError" style="margin-top: 16px; color: var(--red); font-size: 14px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 主窗口 -->
+    <div id="page-main" class="page" style="flex-direction: column;">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-left">
+                <div class="header-logo">📦</div>
+                <span class="header-title">GitUploadTool</span>
+            </div>
+            <div class="header-right">
+                <div class="user-info" id="userInfo">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <span class="user-name" id="userName">加载中...</span>
+                </div>
+                <button class="btn btn-secondary" id="btnSettings">设置</button>
+                <button class="btn btn-danger" id="btnLogout">退出</button>
+            </div>
+        </header>
+
+        <!-- 导航标签 -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="home">首页</button>
+            <button class="nav-tab" data-tab="upload">上传项目</button>
+            <button class="nav-tab" data-tab="history">历史记录</button>
+            <button class="nav-tab" data-tab="settings">设置</button>
+            <button class="nav-tab" data-tab="about">关于</button>
+        </nav>
+
+        <!-- 标签内容 -->
+        <main class="tab-content">
+            <!-- 首页 -->
+            <div id="tab-home" class="tab-pane active">
+                <div class="card fade-in" style="background: linear-gradient(135deg, rgba(108,123,255,0.1), rgba(160,108,255,0.05));">
+                    <h2 style="margin-bottom: 8px;">👋 欢迎使用 GitUploadTool</h2>
+                    <p style="color: var(--text-2); margin-bottom: 24px;">快速将本地项目上传到 GitHub 仓库</p>
+                    <button class="btn btn-primary" id="btnStartUpload">
+                        <span class="btn-icon">📤</span>
+                        开始上传项目
+                    </button>
+                </div>
+
+                <div class="card fade-in">
+                    <h3 class="card-title">📊 使用统计</h3>
+                    <div style="display: flex; gap: 32px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: var(--accent);" id="statProjects">0</div>
+                            <div style="color: var(--text-3); font-size: 13px;">总项目数</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: var(--green);" id="statUploads">0</div>
+                            <div style="color: var(--text-3); font-size: 13px;">上传次数</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: var(--yellow);" id="statSize">0 MB</div>
+                            <div style="color: var(--text-3); font-size: 13px;">总大小</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 上传页 -->
+            <div id="tab-upload" class="tab-pane">
+                <!-- 步骤指示器 -->
+                <div class="upload-steps">
+                    <div class="step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <span class="step-label">选择项目</span>
+                        <div class="step-connector"></div>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-number">2</div>
+                        <span class="step-label">配置仓库</span>
+                        <div class="step-connector"></div>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-number">3</div>
+                        <span class="step-label">检查文件</span>
+                        <div class="step-connector"></div>
+                    </div>
+                    <div class="step" data-step="4">
+                        <div class="step-number">4</div>
+                        <span class="step-label">上传</span>
+                    </div>
+                </div>
+
+                <!-- 步骤1：选择项目 -->
+                <div id="step-1" class="step-content">
+                    <div class="card">
+                        <h3 class="card-title">选择要上传的项目文件夹</h3>
+                        <div id="dropZone" style="border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 32px; text-align: center; cursor: pointer; transition: all .2s;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">拖拽文件夹到此处</div>
+                            <div style="color: var(--text-2); font-size: 14px;">或点击选择文件夹</div>
+                        </div>
+
+                        <div id="selectedProject" style="display: none; margin-top: 16px; padding: 16px; background: var(--bg-3); border-radius: var(--radius);">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                                <div style="flex: 1; overflow: hidden;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;" id="projectName">未选择</div>
+                                    <div style="color: var(--text-3); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="projectPath">/path/to/project</div>
+                                </div>
+                                <button class="btn btn-secondary" id="btnChangeProject" style="padding: 8px 16px; font-size: 13px;">更改</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">📝 项目描述（可选）</h3>
+                        <textarea id="projectDescription" class="form-input" style="min-height: 100px; resize: vertical;" placeholder="输入项目描述..."></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                        <button class="btn btn-secondary" id="btnCancel">取消</button>
+                        <button class="btn btn-primary" id="btnNext1">下一步</button>
+                    </div>
+                </div>
+
+                <!-- 步骤2：配置仓库 -->
+                <div id="step-2" class="step-content" style="display: none;">
+                    <div class="card">
+                        <h3 class="card-title">GitHub 仓库配置</h3>
+                        <div class="form-group">
+                            <label class="form-label">仓库名称</label>
+                            <input type="text" id="repoName" class="form-input" placeholder="my-awesome-project">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">仓库描述</label>
+                            <input type="text" id="repoDescription" class="form-input" placeholder="项目描述">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">是否公开</label>
+                            <div style="display: flex; gap: 12px;">
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg-3); border: 1px solid var(--accent); border-radius: 8px; cursor: pointer;">
+                                    <input type="radio" name="repoVisibility" value="public" checked> 公开
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--bg-3); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+                                    <input type="radio" name="repoVisibility" value="private"> 私有
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">分支名称</label>
+                            <input type="text" id="branchName" class="form-input" value="main">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">.gitignore 模板</label>
+                            <select id="gitignoreTemplate" class="form-input">
+                                <option value="">不添加 .gitignore</option>
+                                <option value="csharp">C# / .NET</option>
+                                <option value="node">Node.js</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; gap: 12px;">
+                        <button class="btn btn-secondary" id="btnPrev2">上一步</button>
+                        <button class="btn btn-primary" id="btnNext2">下一步</button>
+                    </div>
+                </div>
+
+                <!-- 步骤3：检查文件 -->
+                <div id="step-3" class="step-content" style="display: none;">
+                    <div class="card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                            <h3 class="card-title" style="margin: 0;">文件扫描结果</h3>
+                            <button class="btn btn-secondary" id="btnRescan" style="padding: 8px 16px; font-size: 13px;">重新扫描</button>
+                        </div>
+                        <div style="display: flex; gap: 32px; margin-bottom: 24px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--accent);" id="totalFiles">0</div>
+                                <div style="color: var(--text-3); font-size: 12px;">总文件数</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--green);" id="totalSize">0 MB</div>
+                                <div style="color: var(--text-3); font-size: 12px;">总大小</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--yellow);" id="largeFilesCount">0</div>
+                                <div style="color: var(--text-3); font-size: 12px;">大文件(>50MB)</div>
+                            </div>
+                        </div>
+                        <div id="largeFilesSection" style="display: none;">
+                            <h4 style="margin-bottom: 12px; color: var(--yellow);">⚠️ 大文件检测</h4>
+                            <div class="file-list" id="largeFilesList"></div>
+                            <div id="largeFileDecision" style="margin-top: 20px; padding: 20px; background: rgba(255,107,107,0.05); border: 1px solid var(--red); border-radius: var(--radius); display: none;">
+                                <div style="color: var(--red); font-weight: 600; margin-bottom: 12px;">🚨 发现超过 100MB 的文件</div>
+                                <p style="color: var(--text-2); margin-bottom: 16px; font-size: 14px;">GitHub 单文件最大限制为 100MB。请选择处理方式：</p>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn btn-primary" id="btnUseLFS">启用 Git LFS</button>
+                                    <button class="btn btn-secondary" id="btnExcludeLarge">排除大文件</button>
+                                    <button class="btn btn-danger" id="btnCancelUpload">取消上传</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; gap: 12px;">
+                        <button class="btn btn-secondary" id="btnPrev3">上一步</button>
+                        <button class="btn btn-primary" id="btnNext3">开始上传</button>
+                    </div>
+                </div>
+
+                <!-- 步骤4：上传进度 -->
+                <div id="step-4" class="step-content" style="display: none;">
+                    <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+                        <div id="uploadProgressArea">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🔄</div>
+                            <h3 id="uploadStatus">正在准备上传...</h3>
+                            <p id="uploadSubStatus" style="color: var(--text-2); margin-bottom: 24px;">初始化 Git 仓库</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="progressText">0%</span>
+                                <span id="progressInfo">0/0 文件</span>
+                            </div>
+                        </div>
+
+                        <div id="uploadSuccess" style="display: none;">
+                            <div style="font-size: 64px; margin-bottom: 20px; color: var(--green);">✅</div>
+                            <h3 style="color: var(--green);">上传成功！</h3>
+                            <p style="color: var(--text-2); margin-bottom: 24px;">项目已成功推送到 GitHub</p>
+                            <div style="display: flex; gap: 12px; justify-content: center;">
+                                <button class="btn btn-primary" id="btnViewRepo">查看仓库</button>
+                                <button class="btn btn-secondary" id="btnResetUpload">重新上传</button>
+                            </div>
+                        </div>
+
+                        <div id="uploadError" style="display: none;">
+                            <div style="font-size: 64px; margin-bottom: 20px; color: var(--red);">❌</div>
+                            <h3 style="color: var(--red);">上传失败</h3>
+                            <p id="errorMessage" style="color: var(--text-2); margin-bottom: 24px;">错误信息</p>
+                            <div style="display: flex; gap: 12px; justify-content: center;">
+                                <button class="btn btn-primary" id="btnRetry">重试</button>
+                                <button class="btn btn-secondary" id="btnHome">返回首页</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                        <button class="btn btn-secondary" id="btnPrev4">上一步</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史记录 -->
+            <div id="tab-history" class="tab-pane">
+                <div class="card">
+                    <h3 class="card-title">📜 最近上传</h3>
+                    <div id="historyList" style="color: var(--text-3); text-align: center; padding: 40px;">
+                        暂无上传记录
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设置页 -->
+            <div id="tab-settings" class="tab-pane">
+                <div class="card">
+                    <h3 class="card-title">⚙️ 基本设置</h3>
+                    <div class="settings-grid">
+                        <div class="settings-item">
+                            <label class="form-label">默认分支</label>
+                            <input type="text" id="settingDefaultBranch" class="form-input" value="main">
+                        </div>
+                        <div class="settings-item">
+                            <label class="form-label">默认提交消息</label>
+                            <input type="text" id="settingDefaultCommitMessage" class="form-input" value="GitUploadTool 更新">
+                        </div>
+                        <div class="settings-item">
+                            <label class="form-label">代理地址</label>
+                            <input type="text" id="settingProxyAddress" class="form-input" placeholder="127.0.0.1">
+                        </div>
+                        <div class="settings-item">
+                            <label class="form-label">代理端口</label>
+                            <input type="number" id="settingProxyPort" class="form-input" placeholder="7890">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+                        <button class="btn btn-secondary" id="btnResetSettings">重置</button>
+                        <button class="btn btn-primary" id="btnSaveSettings">保存设置</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">🔐 认证管理</h3>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <p style="color: var(--text-2); margin-bottom: 4px;">当前登录状态</p>
+                            <p id="authStatus" style="font-size: 16px; font-weight: 600;">✅ 已登录</p>
+                        </div>
+                        <button class="btn btn-danger" id="btnLogoutSettings">退出登录</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">📄 .gitignore 模板</h3>
+                    <p style="color: var(--text-2); margin-bottom: 16px;">选择默认的 .gitignore 模板</p>
+                    <select id="settingDefaultGitignore" class="form-input" style="max-width: 300px;">
+                        <option value="">不添加 .gitignore</option>
+                        <option value="csharp">C# / .NET</option>
+                        <option value="node">Node.js</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                    </select>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" id="btnSaveGitignore">保存</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 关于 -->
+            <div id="tab-about" class="tab-pane">
+                <div class="card" style="text-align: center; padding: 48px;">
+                    <div style="width: 100px; height: 100px; margin: 0 auto 20px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 50px;">📦</div>
+                    <h2 style="margin-bottom: 8px;">GitUploadTool</h2>
+                    <p style="color: var(--text-2); margin-bottom: 24px;">版本 1.0.0</p>
+                    <p style="color: var(--text-2); line-height: 1.7; margin-bottom: 32px;">
+                        GitUploadTool 是一个简单易用的工具，帮助开发者快速将本地项目上传到 GitHub。<br>
+                        无需复杂的 Git 命令，只需几次点击即可完成项目的上传和管理。
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

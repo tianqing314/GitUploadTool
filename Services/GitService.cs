@@ -42,10 +42,39 @@ public class GitService : IGitService
         return false;
     }
 
-    public async Task<bool> AddFilesAsync(string path)
+    public async Task<bool> AddFilesAsync(string path, IProgress<UploadProgress>? progress = null)
     {
         Logger.Info($"Starting git add in: {path}");
-        var result = await RunGitCommandAsync(path, "add .", timeoutSeconds: 300);
+
+        // 先检查大文件，避免 git add 卡在超大文件上
+        try
+        {
+            const long limit = 100L * 1024 * 1024; // 100MB
+            var largeFiles = Directory.GetFiles(path, "*", SearchOption.AllDirectories)
+                .Where(f => new FileInfo(f).Length > limit)
+                .ToList();
+
+            if (largeFiles.Count > 0)
+            {
+                var names = string.Join("、", largeFiles.Select(f => Path.GetFileName(f)));
+                var msg = $"发现 {largeFiles.Count} 个超过 100MB 的文件：{names}。已中止暂存，请移除这些文件或启用 Git LFS 后重试。";
+                Logger.Error(msg);
+                progress?.Report(new UploadProgress
+                {
+                    Step = UploadStep.Add,
+                    Status = StepStatus.Failed,
+                    Message = "检测到大文件",
+                    ErrorMessage = msg,
+                });
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex, "Large file scan failed before add; continuing");
+        }
+
+        var result = await RunGitCommandAsync(path, "add .", timeoutSeconds: 600);
         if (result.Success)
         {
             Logger.Info("Files staged successfully");
@@ -53,14 +82,29 @@ public class GitService : IGitService
         }
         Logger.Error($"Failed to add files: {result.Error}");
         Logger.Error($"Git output: {result.Output}");
+
+        progress?.Report(new UploadProgress
+        {
+            Step = UploadStep.Add,
+            Status = StepStatus.Failed,
+            Message = "暂存文件失败",
+            ErrorMessage = string.IsNullOrEmpty(result.Error) ? result.Output : result.Error,
+        });
         return false;
     }
 
     public async Task<bool> CommitAsync(string path, string message)
     {
         // Ensure git user config exists
-        await EnsureGitConfigAsync(path);
-        
+        await EnsureGitConfigAsyncAsync(path);
+
+        // 空消息使用默认值，避免 "Aborting commit due to empty commit message"
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            message = $"Upload from GitUploadTool {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+            Logger.Info("Commit message was empty, using default");
+        }
+
         var escapedMessage = message.Replace("\"", "\\\"");
         var result = await RunGitCommandAsync(path, $"commit -m \"{escapedMessage}\"");
         if (result.Success)
@@ -70,10 +114,18 @@ public class GitService : IGitService
         }
         Logger.Error($"Failed to commit: {result.Error}");
         Logger.Error($"Git output: {result.Output}");
+
+        // 如果提示没有变更（Nothing to commit），视为成功
+        if (result.Output.Contains("nothing to commit") || (result.Error?.Contains("nothing to commit") ?? false))
+        {
+            Logger.Info("Nothing to commit, treating as success");
+            return true;
+        }
+
         return false;
     }
 
-    private async Task EnsureGitConfigAsync(string path)
+    private async Task EnsureGitConfigAsyncAsync(string path)
     {
         // Check if user.name is set
         var nameResult = await RunGitCommandAsync(path, "config user.name");
@@ -208,7 +260,7 @@ public class GitService : IGitService
         progress?.Report(addProgress);
         steps.Add(addProgress);
 
-        if (!await AddFilesAsync(path))
+        if (!await AddFilesAsync(path, progress))
         {
             addProgress.Status = StepStatus.Failed;
             addProgress.ErrorMessage = "暂存文件失败";
@@ -315,6 +367,82 @@ public class GitService : IGitService
         catch (Exception ex)
         {
             return (false, "", ex.Message);
+        }
+    }
+
+    public async Task<bool> EnsureGitLfsInstalledAsync(string path)
+    {
+        try
+        {
+            // 先检查 git lfs version 是否可用
+            var check = await RunGitCommandAsync(path, "lfs version", timeoutSeconds: 15);
+            if (check.Success)
+            {
+                // 确保仓库已初始化 LFS（幂等操作）
+                await RunGitQuiet(path, "lfs install");
+                return true;
+            }
+            Logger.Error("git-lfs 未安装，请从 https://git-lfs.github.com 安装后重试");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "EnsureGitLfsInstalled failed");
+            return false;
+        }
+    }
+
+    public async Task<bool> TrackLargeFilesWithLfsAsync(string path, List<FileInfo> files)
+    {
+        try
+        {
+            if (files.Count == 0) return true;
+
+            var tracked = 0;
+            foreach (var file in files)
+            {
+                // 计算相对路径并统一为 / 分隔符
+                var relPath = file.FullName.Substring(path.Length + 1).Replace('\\', '/');
+                var result = await RunGitCommandAsync(path, $"lfs track \"{relPath}\"", timeoutSeconds: 30);
+                if (result.Success)
+                    tracked++;
+                else
+                    Logger.Warn($"LFS track failed for {relPath}: {result.Error}");
+            }
+
+            Logger.Info($"LFS tracked {tracked}/{files.Count} files");
+            return tracked == files.Count;
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "TrackLargeFilesWithLfs failed");
+            return false;
+        }
+    }
+
+    private async Task<bool> RunGitQuiet(string workDir, string args)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = args,
+                WorkingDirectory = workDir,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            using var proc = Process.Start(psi);
+            if (proc == null) return false;
+            await proc.WaitForExitAsync();
+            return proc.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn(ex, "git command failed: {Args}", args);
+            return false;
         }
     }
 }

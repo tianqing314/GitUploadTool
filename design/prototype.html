@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitUploadTool - 新版界面原型</title>
+<style>
+:root {
+  --bg-0: #0b0e14;
+  --bg-1: #11151f;
+  --bg-2: #171c28;
+  --bg-3: #1e2433;
+  --border: #262d3f;
+  --text-1: #e6eaf2;
+  --text-2: #9aa4b8;
+  --text-3: #5c6678;
+  --accent: #6c7bff;
+  --accent-2: #a06cff;
+  --green: #3dd68c;
+  --red: #ff6b6b;
+  --yellow: #ffc86b;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  background: var(--bg-0);
+  color: var(--text-1);
+  height: 100vh;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+/* ============ 页面切换 ============ */
+.page { display: none; height: 100vh; }
+.page.active { display: flex; }
+
+/* ============ 登录页 ============ */
+#page-login {
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 800px 500px at 20% 10%, rgba(108,123,255,.12), transparent),
+    radial-gradient(ellipse 700px 500px at 85% 90%, rgba(160,108,255,.10), transparent),
+    var(--bg-0);
+}
+.login-card {
+  width: 420px;
+  padding: 44px 40px;
+  background: rgba(23,28,40,.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  text-align: center;
+}
+.login-logo {
+  width: 64px; height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 8px 32px rgba(108,123,255,.35);
+}
+.login-card h1 { font-size: 22px; margin-bottom: 6px; }
+.login-card .sub { color: var(--text-2); font-size: 13px; margin-bottom: 28px; }
+.input-wrap { position: relative; margin-bottom: 12px; }
+.input-wrap input {
+  width: 100%;
+  height: 46px;
+  padding: 0 16px 0 44px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-1);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+}
+.input-wrap input:focus { border-color: var(--accent); }
+.input-wrap .icon { position: absolute; left: 14px; top: 13px; opacity: .5; }
+.btn {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  transition: all .15s;
+  font-family: inherit;
+}
+.btn-primary {
+  width: 100%; height: 46px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 4px 16px rgba(108,123,255,.3);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,123,255,.45); }
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-3); font-size: 12px;
+  margin: 20px 0;
+}
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.btn-ghost {
+  width: 100%; height: 44px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--text-1); }
+
+/* ============ 主布局 ============ */
+#page-main { flex-direction: column; }
+.titlebar {
+  height: 40px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  -webkit-app-region: drag;
+}
+.titlebar .dot { width: 11px; height: 11px; border-radius: 50%; margin-right: 8px; }
+.titlebar .name { margin-left: 12px; font-size: 12px; color: var(--text-3); }
+.main-body { flex: 1; display: flex; overflow: hidden; }
+
+.sidebar {
+  width: 230px;
+  background: var(--bg-1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+}
+.user-chip {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+}
+.user-chip .info { flex: 1; min-width: 0; }
+.user-chip .name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.user-chip .meta { font-size: 11px; color: var(--text-3); }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: var(--text-2);
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all .15s;
+  user-select: none;
+}
+.nav-item:hover { background: var(--bg-2); color: var(--text-1); }
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(108,123,255,.18), rgba(160,108,255,.12));
+  color: var(--text-1);
+  border: 1px solid rgba(108,123,255,.35);
+}
+.nav-item .ico { font-size: 16px; width: 20px; text-align: center; }
+.sidebar .spacer { flex: 1; }
+.logout-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: var(--red);
+  cursor: pointer;
+  opacity: .8;
+  user-select: none;
+}
+.logout-btn:hover { background: rgba(255,107,107,.08); opacity: 1; }
+
+.content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+.content::-webkit-scrollbar { width: 8px; }
+.content::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 4px; }
+
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-bottom: 18px;
+}
+.card h2 { font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 20px;
+  background: rgba(61,214,140,.12); color: var(--green); font-weight: 600;
+}
+
+/* 首页 */
+.hero {
+  background: linear-gradient(135deg, rgba(108,123,255,.14), rgba(160,108,255,.08)), var(--bg-1);
+  border: 1px solid rgba(108,123,255,.25);
+}
+.hero h1 { font-size: 22px; margin-bottom: 6px; }
+.hero p { color: var(--text-2); font-size: 13px; }
+.stat-row { display: flex; gap: 14px; margin-top: 20px; }
+.stat {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat .num { font-size: 22px; font-weight: 700; }
+.stat .lbl { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.recent-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: border-color .15s;
+}
+.recent-row:hover { border-color: var(--accent); }
+.recent-row .rname { font-weight: 600; font-size: 13px; }
+.recent-row .rpath { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.recent-row .time { margin-left: auto; font-size: 11px; color: var(--text-3); }
+.repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.repo-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.repo-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.repo-card .rname { font-weight: 600; color: var(--accent); font-size: 13px; margin-bottom: 6px; }
+.repo-card .rdesc { font-size: 12px; color: var(--text-2); min-height: 32px; line-height: 1.4; }
+.repo-tags { display: flex; gap: 8px; margin-top: 10px; }
+.tag { font-size: 10px; padding: 2px 9px; border-radius: 20px; background: var(--bg-3); color: var(--text-2); }
+.tag.pub { background: rgba(61,214,140,.12); color: var(--green); }
+.tag.pri { background: rgba(255,200,107,.12); color: var(--yellow); }
+
+/* ============ 上传向导 ============ */
+.steps {
+  display: flex; align-items: center;
+  margin-bottom: 24px;
+  padding: 18px 24px;
+}
+.step-node { display: flex; align-items: center; gap: 10px; }
+.step-dot {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--bg-3);
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+  transition: all .3s;
+}
+.step-label { font-size: 12px; color: var(--text-3); }
+.step-node.active .step-dot {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(108,123,255,.15);
+}
+.step-node.active .step-label { color: var(--text-1); font-weight: 600; }
+.step-node.done .step-dot { background: rgba(61,214,140,.15); color: var(--green); }
+.step-line { flex: 1; height: 2px; background: var(--bg-3); margin: 0 14px; border-radius: 1px; }
+.step-line.done { background: var(--green); opacity: .5; }
+
+.wizard-page { display: none; }
+.wizard-page.active { display: block; }
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+}
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--accent);
+  background: rgba(108,123,255,.05);
+}
+.dropzone .big-ico { font-size: 42px; margin-bottom: 12px; }
+.dropzone .t1 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.dropzone .t2 { font-size: 12px; color: var(--text-3); }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+.info-cell {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.info-cell .k { font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+.info-cell .v { font-size: 14px; font-weight: 600; word-break: break-all; }
+
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 7px; }
+.field input[type=text], .field select, .field textarea {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-1);
+  padding: 11px 14px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color .2s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.check-status {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px;
+  border-radius: 10px;
+  margin-top: 14px;
+}
+.check-status.ok { background: rgba(61,214,140,.08); border: 1px solid rgba(61,214,140,.25); }
+.check-status.warn { background: rgba(255,200,107,.07); border: 1px solid rgba(255,200,107,.25); }
+.check-status.none { background: var(--bg-2); border: 1px dashed var(--border); }
+.status-ico { font-size: 24px; }
+
+/* 大文件面板 */
+.large-file-panel {
+  margin-top: 16px;
+  background: rgba(255,107,107,.05);
+  border: 1px solid rgba(255,107,107,.25);
+  border-radius: 10px;
+  padding: 18px;
+}
+.lfp-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 600; }
+.lfp-sub { font-size: 12px; color: var(--text-2); margin-bottom: 14px; }
+.file-list { margin-bottom: 16px; }
+.file-row {
+  display: flex; align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+.file-row .fsize { margin-left: auto; font-weight: 700; }
+.fsize.over { color: var(--red); }
+.fsize.near { color: var(--yellow); }
+.solution-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.solution-card {
+  background: var(--bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.solution-card:hover { border-color: var(--accent); }
+.solution-card.selected { border-color: var(--accent); background: rgba(108,123,255,.07); }
+.solution-card.rec::after {
+  content: "推荐";
+  float: right;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(108,123,255,.18);
+  color: var(--accent);
+}
+.solution-card .st { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.solution-card .sd { font-size: 11.5px; color: var(--text-2); line-height: 1.5; }
+
+/* 上传进度日志 */
+.log-box {
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  height: 220px;
+  overflow-y: auto;
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  margin-top: 14px;
+}
+.log-line { padding: 3px 0; color: var(--text-2); }
+.log-line.ok { color: var(--green); }
+.log-line.err { color: var(--red); }
+.log-line.run { color: var(--accent); }
+.log-line .lt { color: var(--text-3); margin-right: 8px; }
+
+.progress-bar-wrap { margin-top: 14px; }
+.progress-track { height: 6px; background: var(--bg-3); border-radius: 3px; overflow: hidden; }
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 3px;
+  transition: width .4s ease;
+  width: 0%;
+}
+
+.btn-row { display: flex; gap: 12px; margin-top: 22px; }
+.btn-md { height: 42px; padding: 0 26px; font-size: 13.5px; }
+.btn-secondary {
+  background: var(--bg-3);
+  color: var(--text-2);
+}
+.btn-secondary:hover { color: var(--text-1); }
+.btn-success {
+  background: linear-gradient(135deg, #2ea44f, #3dd68c);
+  box-shadow: 0 4px 16px rgba(61,214,140,.25);
+}
+.btn-success:hover { transform: translateY(-1px); }
+.btn-success:disabled, .btn-primary:disabled, .btn-md:disabled {
+  opacity: .45; cursor: not-allowed; transform: none !important;
+}
+.push-right { margin-left: auto; }
+
+/* 设置页 */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-row .tl { font-size: 13px; }
+.toggle-row .td { font-size: 11.5px; color: var(--text-3); margin-top: 3px; }
+.switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+.switch input { display: none; }
+.switch .track {
+  position: absolute; inset: 0;
+  background: var(--bg-3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.switch .track::after {
+  content: "";
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .2s;
+}
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(18px); }
+
+/* toast 提示 */
+.toast {
+  position: fixed;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg-3);
+  border: 1px solid var(--accent);
+  color: var(--text-1);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 13px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  z-index: 99;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ================= 登录页 ================= -->
+<div class="page active" id="page-login">
+  <div class="login-card">
+    <div class="login-logo">🚀</div>
+    <h1>GitUploadTool</h1>
+    <div class="sub">将您的项目快速上传到 GitHub</div>
+
+    <div class="input-wrap">
+      <span class="icon">🔑</span>
+      <input type="password" id="token-input" placeholder="粘贴 GitHub 个人访问令牌 (PAT)">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">登 录</button>
+
+    <div class="divider">或</div>
+    <button class="btn btn-ghost" onclick="deviceFlowLogin()">🌐 使用浏览器授权登录（Device Flow）</button>
+    <div style="margin-top:16px;font-size:11px;color:var(--text-3)">
+      浏览器授权无需手动创建 Token，更安全便捷
+    </div>
+  </div>
+</div>
+
+<!-- ================= 主界面 ================= -->
+<div class="page" id="page-main">
+  <div class="titlebar">
+    <span class="dot" style="background:#ff5f57"></span>
+    <span class="dot" style="background:#febc2e"></span>
+    <span class="dot" style="background:#28c840"></span>
+    <span class="name">GitUploadTool v2.0</span>
+  </div>
+  <div class="main-body">
+    <div class="sidebar">
+      <div class="user-chip">
+        <div class="avatar">TQ</div>
+        <div class="info">
+          <div class="name">tianqing314</div>
+          <div class="meta">12 个公开仓库</div>
+        </div>
+      </div>
+
+      <div class="nav-item active" data-nav="home"><span class="ico">🏠</span>首页</div>
+      <div class="nav-item" data-nav="upload"><span class="ico">📤</span>上传项目</div>
+      <div class="nav-item" data-nav="settings"><span class="ico">⚙️</span>设置</div>
+      <div class="nav-item" data-nav="about"><span class="ico">ℹ️</span>关于</div>
+      <div class="spacer"></div>
+      <div class="logout-btn" onclick="logout()"><span class="ico">🚪</span>退出登录</div>
+    </div>
+
+    <div class="content">
+      <!-- ========== 首页 ========== -->
+      <div id="tab-home">
+        <div class="card hero">
+          <h1>欢迎回来，tianqing314 👋</h1>
+          <p>今天想上传点什么？拖入文件夹即可开始。</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><div class="num">12</div><div class="lbl">公开仓库</div></div>
+          <div class="stat"><div class="num">5</div><div class="lbl">私有仓库</div></div>
+          <div class="stat"><div class="num">27</div><div class="lbl">累计上传</div></div>
+          <div class="stat"><div class="num">1.8 GB</div><div class="lbl">总传输量</div></div>
+        </div>
+
+        <div class="card">
+          <h2>🕐 最近上传</h2>
+          <div class="recent-row">
+            <div><div class="rname">GitUploadTool</div><div class="rpath">E:\GitUploadTool\GitUploadTool</div></div>
+            <div class="time">2026-08-23 14:20</div>
+          </div>
+          <div class="recent-row">
+            <div><div class="rname">blog-theme</div><div class="rpath">D:\Projects\blog-theme</div></div>
+            <div class="time">2026-08-21 09:33</div>
+          </div>
+          <div class="recent-row">
+            <div><div class="rname">ml-notes</div><div class="rpath">D:\Study\ml-notes</div></div>
+            <div class="time">2026-08-19 22:10</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>📦 我的仓库 <span class="badge">实时同步</span></h2>
+          <div class="repo-grid">
+            <div class="repo-card">
+              <div class="rname">GitUploadTool</div>
+              <div class="rdesc">GitHub 项目一键上传桌面工具</div>
+              <div class="repo-tags"><span class="tag pub">公开</span><span class="tag">C#</span></div>
+            </div>
+            <div class="repo-card">
+              <div class="rname">blog-theme</div>
+              <div class="rdesc">个人博客 Hexo 主题</div>
+              <div class="repo-tags"><span class="tag pub">公开</span><span class="tag">CSS</span></div>
+            </div>
+            <div class="repo-card">
+              <div class="rname">internal-tools</div>
+              <div class="rdesc">公司内部效率工具合集</div>
+              <div class="repo-tags"><span class="tag pri">私有</span><span class="tag">Python</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 上传向导 ========== -->
+      <div id="tab-upload" style="display:none">
+        <div class="card steps">
+          <div class="step-node active" id="sn-0"><div class="step-dot">1</div><div class="step-label">选择项目</div></div>
+          <div class="step-line" id="sl-0"></div>
+          <div class="step-node" id="sn-1"><div class="step-dot">2</div><div class="step-label">检查与修复</div></div>
+          <div class="step-line" id="sl-1"></div>
+          <div class="step-node" id="sn-2"><div class="step-dot">3</div><div class="step-label">配置</div></div>
+          <div class="step-line" id="sl-2"></div>
+          <div class="step-node" id="sn-3"><div class="step-dot">4</div><div class="step-label">上传</div></div>
+        </div>
+
+        <!-- 第1步：选择项目 -->
+        <div class="wizard-page active" id="wp-0">
+          <div class="dropzone" onclick="pickFolder()" ondragover="dragOver(event)" ondragleave="this.classList.remove('dragover')" ondrop="dropFolder(event)">
+            <div class="big-ico">📂</div>
+            <div class="t1">拖拽文件夹到此处，或点击选择</div>
+            <div class="t2">支持任意本地项目目录 · 自动识别 Git 仓库</div>
+          </div>
+          <div class="info-grid" id="project-info" style="display:none">
+            <div class="info-cell"><div class="k">名称</div><div class="v">my-awesome-app</div></div>
+            <div class="info-cell"><div class="k">文件数</div><div class="v">1,247 个</div></div>
+            <div class="info-cell"><div class="k">大小</div><div class="v">326 MB</div></div>
+            <div class="info-cell"><div class="k">Git 状态</div><div class="v" style="color:var(--yellow)">非 Git 仓库</div></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary btn-md push-right" onclick="gotoStep(1)">下一步 →</button>
+          </div>
+        </div>
+
+        <!-- 第2步：检查 + 大文件处理 -->
+        <div class="wizard-page" id="wp-1">
+          <div class="card">
+            <h2>🔍 GitHub 仓库检查</h2>
+            <button class="btn btn-secondary btn-md" onclick="checkRepo()">检查 my-awesome-app 仓库</button>
+            <div class="check-status ok" id="repo-ok" style="display:none">
+              <span class="status-ico">✅</span>
+              <div><div style="font-weight:600">仓库已存在：tianqing314/my-awesome-app</div>
+              <div style="font-size:12px;color:var(--text-2)">将直接推送到该仓库（--force）</div></div>
+            </div>
+            <div class="check-status warn" id="repo-none" style="display:none">
+              <span class="status-ico">📦</span>
+              <div style="flex:1"><div style="font-weight:600">仓库不存在，需要先创建</div>
+              <div style="font-size:12px;color:var(--text-2)">点击右侧按钮在 GitHub 上创建新仓库</div></div>
+              <button class="btn btn-success btn-md" style="height:36px;padding:0 18px" onclick="toast('打开创建仓库弹窗')">➕ 创建仓库</button>
+            </div>
+          </div>
+
+          <!-- 大文件检测面板（核心新增设计） -->
+          <div class="large-file-panel" id="lfp" style="display:none">
+            <div class="lfp-head"><span>⚠️</span> 检测到 3 个大文件（GitHub 直传限制为 100MB）</div>
+            <div class="lfp-sub">以下文件超过 50MB，其中红色标记的超过 100MB 硬限制，必须处理后才能上传：</div>
+            <div class="file-list">
+              <div class="file-row">
+                <span>📁 assets/demo-video.mp4</span>
+                <span class="fsize over">184.2 MB</span>
+              </div>
+              <div class="file-row">
+                <span>📁 models/bert-base.bin</span>
+                <span class="fsize over">412.7 MB</span>
+              </div>
+              <div class="file-row">
+                <span>📁 data/sample-dataset.zip</span>
+                <span class="fsize near">67.5 MB</span>
+              </div>
+            </div>
+            <div class="lfp-sub" style="margin-bottom:10px">请选择处理方式：</div>
+            <div class="solution-cards">
+              <div class="solution-card selected rec" onclick="pickSolution(this, 'lfs')">
+                <div class="st">🚀 启用 Git LFS 上传</div>
+                <div class="sd">大文件走 LFS 存储（免费额度 1GB/月），仓库保留完整文件。需已安装 git-lfs。</div>
+              </div>
+              <div class="solution-card" onclick="pickSolution(this, 'exclude')">
+                <div class="st">✂️ 排除后上传</div>
+                <div class="sd">自动将大文件写入 .gitignore 并排除，仅上传其余文件。原文件不受影响。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-md" onclick="gotoStep(0)">← 上一步</button>
+            <button class="btn btn-primary btn-md push-right" onclick="gotoStep(2)" id="step2-next">下一步 →</button>
+          </div>
+        </div>
+
+        <!-- 第3步：配置 -->
+        <div class="wizard-page" id="wp-2">
+          <div class="card">
+            <h2>⚙️ 配置上传参数</h2>
+            <div class="two-col">
+              <div>
+                <div class="field">
+                  <label>目标分支</label>
+                  <select><option>main</option><option>master</option><option>dev</option></select>
+                </div>
+                <div class="field">
+                  <label>.gitignore 模板</label>
+                  <select onchange="document.getElementById('gi-preview').style.display='block'">
+                    <option value="">不使用</option>
+                    <option selected>VisualStudio</option>
+                    <option>Node</option><option>Python</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label>提交信息</label>
+                <textarea rows="4">feat: 初始提交 my-awesome-app v1.0</textarea>
+              </div>
+            </div>
+            <div id="gi-preview" style="display:none">
+              <div class="file-row" style="font-family:Consolas;color:var(--text-2)">
+                [Bin/] [obj/] [.vs/] [*.user] ... 已应用 VisualStudio 模板（预览）
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-md" onclick="gotoStep(1)">← 上一步</button>
+            <button class="btn btn-primary btn-md push-right" onclick="gotoStep(3)">下一步 →</button>
+          </div>
+        </div>
+
+        <!-- 第4步：上传 -->
+        <div class="wizard-page" id="wp-3">
+          <div class="card">
+            <h2>🚀 上传进度</h2>
+            <div class="progress-bar-wrap">
+              <div class="progress-track"><div class="progress-fill" id="pfill"></div></div>
+            </div>
+            <div class="log-box" id="logbox"></div>
+            <div class="btn-row">
+              <button class="btn btn-success btn-md" id="upload-btn" onclick="startUpload()">🚀 开始上传</button>
+              <button class="btn btn-secondary btn-md push-right" onclick="gotoStep(2)">← 上一步</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 设置 ========== -->
+      <div id="tab-settings" style="display:none">
+        <div class="card">
+          <h2>🌐 网络</h2>
+          <div class="toggle-row">
+            <div><div class="tl">使用系统代理</div><div class="td">自动跟随 Windows 代理设置访问 GitHub</div></div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="tl">手动代理</div><div class="td">格式 http://127.0.0.1:7890</div></div>
+            <input type="text" placeholder="http://127.0.0.1:7890" style="width:220px;background:var(--bg-2);border:1px solid var(--border);border-radius:8px;color:var(--text-1);padding:8px 12px;font-size:12px;outline:none">
+          </div>
+        </div>
+        <div class="card">
+          <h2>📤 上传默认值</h2>
+          <div class="two-col">
+            <div class="field"><label>默认分支</label><input type="text" value="main"></div>
+            <div class="field"><label>默认提交信息</label><input type="text" value="GitUploadTool 更新"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="tl">大文件自动启用 LFS</div><div class="td">检测到 >100MB 文件时自动选择 Git LFS 方案</div></div>
+            <label class="switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+        <div class="card">
+          <h2>🔐 安全</h2>
+          <div class="toggle-row">
+            <div><div class="tl">DPAPI 加密存储 Token</div><div class="td">使用 Windows 用户级加密保护令牌（推荐开启）</div></div>
+            <label class="switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="tl">清除本机凭据</div><div class="td">删除已保存的 Token 与最近项目记录</div></div>
+            <button class="btn btn-secondary btn-md" style="height:34px;padding:0 16px;color:var(--red)" onclick="toast('已清除')">清除</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 关于 ========== -->
+      <div id="tab-about" style="display:none">
+        <div class="card hero" style="text-align:center;padding:48px">
+          <div class="login-logo" style="margin:0 auto 16px">🚀</div>
+          <h1>GitUploadTool v2.0</h1>
+          <p>WPF + WebView2 架构 · 让上传项目到 GitHub 变得简单</p>
+          <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
+            <span class="tag">.NET 8</span><span class="tag">WebView2</span><span class="tag">MIT License</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 导航 =====
+const tabs = ['home','upload','settings','about'];
+function showTab(name) {
+  tabs.forEach(t => document.getElementById('tab-'+t).style.display = t===name ? '' : 'none');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.nav===name));
+}
+document.querySelectorAll('.nav-item').forEach(n =>
+  n.addEventListener('click', () => showTab(n.dataset.nav)));
+
+// ===== 登录（演示：任意输入均可进入） =====
+function doLogin() {
+  const v = document.getElementById('token-input').value.trim();
+  if (!v) return toast('请输入 Token');
+  enterApp();
+}
+function deviceFlowLogin() {
+  toast('正在打开浏览器授权…（Device Flow 演示）');
+  setTimeout(enterApp, 1200);
+}
+function enterApp() {
+  document.getElementById('page-login').classList.remove('active');
+  document.getElementById('page-main').classList.add('active');
+}
+function logout() {
+  document.getElementById('page-main').classList.remove('active');
+  document.getElementById('page-login').classList.add('active');
+}
+
+// ===== 步骤切换 =====
+function gotoStep(i) {
+  for (let k=0;k<4;k++) {
+    document.getElementById('wp-'+k).classList.toggle('active', k===i);
+    const sn = document.getElementById('sn-'+k);
+    sn.classList.toggle('active', k===i);
+    if (k<i) sn.classList.add('done'); else sn.classList.remove('done');
+    if (k<i && k<3) document.getElementById('sl-'+k).classList.add('done');
+    else document.getElementById('sl-'+k).classList.remove('done');
+  }
+  // 进入第2步时演示检查+大文件
+  if (i===1) setTimeout(()=>{ checkRepo(); showLargeFilePanel(); }, 300);
+}
+
+// ===== 文件夹选择（原型模拟；实际通过桥接调 C# 原生对话框） =====
+function pickFolder() {
+  document.getElementById('project-info').style.display = 'grid';
+  toast('已选择文件夹 D:\\Projects\\my-awesome-app');
+}
+function dragOver(e){ e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+function dropFolder(e){
+  e.preventDefault(); e.currentTarget.classList.remove('dragover');
+  pickFolder();
+}
+
+// ===== 仓库检查演示 =====
+let repoChecked = false;
+function checkRepo() {
+  repoChecked = true;
+  document.getElementById('repo-ok').style.display = 'flex';
+  updateNextBtn();
+}
+
+// ===== 大文件面板演示 =====
+let solution = 'lfs';
+function showLargeFilePanel(){ document.getElementById('lfp').style.display='block'; updateNextBtn(); }
+function pickSolution(el, s) {
+  solution = s;
+  el.parentElement.querySelectorAll('.solution-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  toast(s==='lfs' ? '将启用 Git LFS 上传大文件' : '大文件将被排除在上传之外');
+}
+function updateNextBtn() {
+  // 原型中始终允许下一步；实际逻辑：有未处理的大文件且未选择方案时禁用
+}
+
+// ===== 上传进度演示 =====
+const demoLog = [
+  ['run','正在初始化 Git 仓库...'],
+  ['ok','Git 仓库已就绪'],
+  ['ok','已启用 Git LFS，追踪 2 个大文件'],
+  ['run','正在暂存文件...'],
+  ['ok','文件已暂存（1245 个文件，已排除 2 个 LFS 文件）'],
+  ['run','正在提交更改...'],
+  ['ok','更改已提交'],
+  ['run','正在添加远程仓库并推送...'],
+  ['run','推送中：assets/demo-video.mp4 → LFS 184.2MB'],
+  ['run','推送中：models/bert-base.bin → LFS 412.7MB'],
+  ['ok','已推送到 origin/main'],
+];
+function startUpload() {
+  const box = document.getElementById('logbox');
+  const fill = document.getElementById('pfill');
+  const btn = document.getElementById('upload-btn');
+  box.innerHTML=''; fill.style.width='0%'; btn.disabled=true;
+  let i=0;
+  const timer = setInterval(()=>{
+    if (i>=demoLog.length) {
+      clearInterval(timer);
+      const done=document.createElement('div');
+      done.className='log-line ok';
+      done.innerHTML='<span class="lt">'+new Date().toLocaleTimeString()+'</span>🎉 上传完成！耗时 2 分 41 秒';
+      box.appendChild(done);
+      btn.disabled=false;
+      toast('🎉 上传成功！');
+      return;
+    }
+    const [cls,msg]=demoLog[i++];
+    const d=document.createElement('div');
+    d.className='log-line '+cls;
+    d.innerHTML='<span class="lt">'+new Date().toLocaleTimeString()+'</span>'+msg;
+    box.appendChild(d);
+    box.scrollTop=box.scrollHeight;
+    fill.style.width=(i/(demoLog.length+1)*100)+'%';
+  }, 550);
+}
+
+// ===== toast =====
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

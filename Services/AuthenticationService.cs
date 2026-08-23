@@ -133,7 +133,7 @@ public class AuthenticationService : IAuthenticationService
                 return null;
 
             var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/user");
-            request.Headers.Add("Authorization", $"Bearer {token}");
+            request.Headers.Add("Authorization", $"token {token}");
             request.Headers.Add("User-Agent", "GitUploadTool");
 
             var response = await _httpClient.SendAsync(request);

@@ -1,0 +1,92 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.aar
+*.nar
+
+# virtual machine crash logs
+hs_err_pid*
+
+# Java generated
+target/
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Eclipse
+.classpath
+.project
+.settings/
+*.prefs
+*.pydevproject
+.project
+.settings/
+.bin
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# NetBeans
+nbproject/private/
+build/
+build.xml
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Android
+*.apk
+*.ap_
+*.aab
+
+# Build generated
+build/
+generated/
+
+# External tool builds
+.gradle/
+
+# Native header files
+*.h
+*.so
+*.a
+*.dll
+
+# Library projects
+*.jar
+*.aar
+
+# Gradle wrapper
+gradle/wrapper/gradle-wrapper.jar
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
