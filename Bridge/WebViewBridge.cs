@@ -112,6 +112,15 @@ public class WebViewBridge
                 _ = Task.Run(async () => await TokenLoginAsync(root));
                 break;
 
+            case "openUrl":
+                if (root is JsonElement elem && elem.TryGetProperty("url", out var urlProp))
+                {
+                    var url = urlProp.GetString();
+                    if (!string.IsNullOrEmpty(url))
+                        _ = Task.Run(() => OpenUrl(url));
+                }
+                break;
+
             case "logout":
                 _ = Task.Run(async () =>
                 {
@@ -215,11 +224,27 @@ public class WebViewBridge
                 break;
             }
 
-            case "openUrl":
-            case "open_url":
+            case "createRepository":
             {
-                var url = root.TryGetProperty("url", out var urlProp) ? urlProp.GetString() : string.Empty;
-                OpenUrl(url ?? string.Empty);
+                var name = root.TryGetProperty("name", out var nProp) ? nProp.GetString() : string.Empty;
+                var description = root.TryGetProperty("description", out var dProp) ? dProp.GetString() : string.Empty;
+                var isPrivate = root.TryGetProperty("isPrivate", out var ipProp) && ipProp.GetBoolean();
+                _ = Task.Run(async () => await CreateRepositoryAsync(name, description, isPrivate));
+                break;
+            }
+            case "updateRepoVisibility":
+            {
+                var owner = root.TryGetProperty("owner", out var oProp) ? oProp.GetString() : string.Empty;
+                var repo = root.TryGetProperty("repo", out var rProp) ? rProp.GetString() : string.Empty;
+                var isPrivate = root.TryGetProperty("isPrivate", out var ipProp) && ipProp.GetBoolean();
+                _ = Task.Run(async () => await UpdateRepoVisibilityAsync(owner, repo, isPrivate));
+                break;
+            }
+            case "deleteRepository":
+            {
+                var owner = root.TryGetProperty("owner", out var oProp) ? oProp.GetString() : string.Empty;
+                var repo = root.TryGetProperty("repo", out var rProp) ? rProp.GetString() : string.Empty;
+                _ = Task.Run(async () => await DeleteRepositoryAsync(owner, repo));
                 break;
             }
 
@@ -366,7 +391,84 @@ public class WebViewBridge
         }
     }
 
-    // ============ Folder & Files ============
+    private async Task CreateRepositoryAsync(string name, string? description, bool isPrivate)
+    {
+        try
+        {
+            var settings = await _serviceProvider.GetRequiredService<ISettingsService>().GetSettingsAsync();
+            var platform = ResolvePlatformService(settings.Platform, settings.GitLabInstanceUrl);
+            var repo = await platform.CreatePlatformRepositoryAsync(name, description, isPrivate);
+            if (repo != null)
+            {
+                Send("createRepositorySuccess", new { success = true, repository = repo });
+                // 刷新仓库列表
+                await GetRepositoriesAsync();
+            }
+            else
+            {
+                Send("createRepositoryFailed", new { success = false, message = "创建仓库失败" });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "CreateRepository failed");
+            Send("createRepositoryFailed", new { success = false, message = ex.Message });
+        }
+    }
+
+    private async Task UpdateRepoVisibilityAsync(string owner, string repo, bool isPrivate)
+    {
+        try
+        {
+            var settings = await _serviceProvider.GetRequiredService<ISettingsService>().GetSettingsAsync();
+            var platform = ResolvePlatformService(settings.Platform, settings.GitLabInstanceUrl);
+            var success = await platform.UpdateRepoVisibilityAsync(owner, repo, isPrivate);
+            if (success)
+            {
+                Send("updateRepoVisibilitySuccess", new { success = true, repository = new { owner, repo, isPrivate } });
+                await GetRepositoriesAsync();
+            }
+            else
+            {
+                Send("error", new { message = $"更新仓库可见性失败：{owner}/{repo}" });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "UpdateRepoVisibility failed");
+            Send("error", new { message = ex.Message });
+        }
+    }
+
+    private async Task DeleteRepositoryAsync(string owner, string repo)
+    {
+        try
+        {
+            var settings = await _serviceProvider.GetRequiredService<ISettingsService>().GetSettingsAsync();
+            var platform = ResolvePlatformService(settings.Platform, settings.GitLabInstanceUrl);
+            var (success, error) = await platform.DeleteRepositoryAsync(owner, repo);
+            if (success)
+            {
+                Send("deleteRepositorySuccess", new { success = true, repository = new { owner, repo } });
+                await GetRepositoriesAsync();
+            }
+            else
+            {
+                var msg = string.IsNullOrEmpty(error)
+                    ? $"删除仓库失败：{owner}/{repo}"
+                    : $"删除仓库失败：{owner}/{repo}\n{error}";
+                Send("error", new { message = msg, owner, repo });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "DeleteRepository failed");
+            Send("error", new { message = ex.Message });
+        }
+    }
+
+
+
     private void SelectFolderDialog()
     {
         try
@@ -620,6 +722,7 @@ public class WebViewBridge
                     RepoUrl = repoUrl,
                     UploadTime = DateTime.Now,
                     Branch = branch,
+                    Size = CalculateDirectorySize(path),
                 });
             }
             catch (Exception ex)
@@ -643,6 +746,34 @@ public class WebViewBridge
         public string? gitignore { get; set; }
         public bool useLfs { get; set; }
         public bool excludeLarge { get; set; }
+    }
+
+    /// <summary>
+    /// 递归计算目录内文件总大小（跳过 .git 元数据目录）
+    /// </summary>
+    private static long CalculateDirectorySize(string path)
+    {
+        long total = 0;
+        try
+        {
+            foreach (var dir in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly))
+            {
+                if (Path.GetFileName(dir).Equals(".git", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                total += CalculateDirectorySize(dir);
+            }
+
+            foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    total += new FileInfo(file).Length;
+                }
+                catch { /* skip inaccessible files */ }
+            }
+        }
+        catch { /* skip inaccessible directories */ }
+        return total;
     }
 
     private async Task<bool> RunGitQuiet(string workDir, string args)

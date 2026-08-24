@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using System.Windows.Input;
 using GitUploadTool.Bridge;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,7 +9,6 @@ namespace GitUploadTool;
 public partial class MainWindow : Window
 {
     private readonly IServiceProvider _serviceProvider;
-    private bool _isDragging = false;
 
     public MainWindow(IServiceProvider serviceProvider)
     {
@@ -49,7 +49,7 @@ public partial class MainWindow : Window
 
     private void BtnMaximize_Click(object sender, RoutedEventArgs e)
     {
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        ToggleMaximize();
     }
 
     private void BtnClose_Click(object sender, RoutedEventArgs e)
@@ -59,9 +59,24 @@ public partial class MainWindow : Window
 
     private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (e.ClickCount == 1)
+        // 双击标题栏切换最大化/还原
+        if (e.ClickCount == 2)
         {
-            DragMove();
+            ToggleMaximize();
+            return;
         }
+
+        // 最大化状态下不允许拖动，直接返回
+        if (WindowState == WindowState.Maximized)
+        {
+            return;
+        }
+
+        DragMove();
+    }
+
+    private void ToggleMaximize()
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
     }
 }

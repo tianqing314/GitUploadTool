@@ -221,18 +221,23 @@ public class GitHubService : IGitHubService, IPlatformService
         return repository != null;
     }
 
-    public async Task<bool> DeleteRepositoryAsync(string owner, string repo)
+    public async Task<(bool Success, string? Error)> DeleteRepositoryAsync(string owner, string repo)
     {
         try
         {
-            var request = await CreateRequestAsync(HttpMethod.Delete, $"/repos/{owner}/{repo}");
+            var request = await CreateRequestAsync(HttpMethod.Delete, $"/repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(repo)}");
             var response = await _httpClient.SendAsync(request);
-            return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
+            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                return (true, null);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Logger.Warn("Delete repo failed: {Status} {Body}", (int)response.StatusCode, body);
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
         }
         catch (Exception ex)
         {
             Logger.Error(ex, $"Failed to delete repository {owner}/{repo}");
-            return false;
+            return (false, ex.Message);
         }
     }
 
@@ -240,7 +245,7 @@ public class GitHubService : IGitHubService, IPlatformService
     {
         try
         {
-            var request = await CreateRequestAsync(new HttpMethod("PATCH"), $"/repos/{owner}/{repo}");
+            var request = await CreateRequestAsync(new HttpMethod("PATCH"), $"/repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(repo)}");
             var body = new { @private = isPrivate };
             request.Content = new StringContent(
                 JsonSerializer.Serialize(body),

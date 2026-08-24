@@ -18,4 +18,7 @@ public class RecentProject
 
     [JsonPropertyName("branch")]
     public string Branch { get; set; } = "main";
+
+    [JsonPropertyName("size")]
+    public long Size { get; set; }
 }

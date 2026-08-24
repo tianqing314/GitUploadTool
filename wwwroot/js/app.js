@@ -37,6 +37,8 @@ function handleCSharpMessage(msg) {
             showPage('main');
             updateAuthStatus(true, data.user);
             showToast('登录成功：' + (data.user?.login || ''), 'success');
+            sendToCSharp('repositories');
+            sendToCSharp('loadHistory');
             break;
         case 'tokenLoginFailed':
         case 'loginFailed':
@@ -46,6 +48,8 @@ function handleCSharpMessage(msg) {
             if (data.isAuthenticated && data.user) {
                 showPage('main');
                 updateAuthStatus(true, data.user);
+                sendToCSharp('repositories');
+                sendToCSharp('loadHistory');
             }
             break;
         case 'logoutSuccess':
@@ -63,6 +67,8 @@ function handleCSharpMessage(msg) {
             break;
         case 'uploadSuccess':
             showUploadSuccess(data);
+            // 上传成功后刷新历史记录与统计
+            sendToCSharp('loadHistory');
             break;
         case 'uploadResult':
             if (!data.success) showUploadError(data.error || '未知错误');
@@ -76,8 +82,16 @@ function handleCSharpMessage(msg) {
         case 'settingsSaved':
             showToast('设置已保存', 'success');
             break;
+        case 'repositories':
+            renderRepositories(data.items || []);
+            break;
+        case 'updateRepoVisibilitySuccess':
+        case 'deleteRepositorySuccess':
+            sendToCSharp('repositories');
+            showToast('操作成功', 'success');
+            break;
         case 'error':
-            showToast(data.message || '操作失败', 'error');
+            showErrorToast(data.message || '操作失败', data.owner, data.repo);
             break;
     }
 }
@@ -95,6 +109,11 @@ function showTab(tabName) {
 
     document.getElementById(`tab-${tabName}`).classList.add('active');
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+    // 切换到历史记录标签时刷新数据
+    if (tabName === 'history') {
+        sendToCSharp('loadHistory');
+    }
 }
 
 // ============ Auth & Login ============
@@ -253,40 +272,69 @@ function showUploadError(message) {
     document.getElementById('errorMessage').textContent = message;
 }
 
+function updateStats(items = []) {
+    const list = items || [];
+    const uniquePaths = new Set(list.map(it => it.path).filter(Boolean));
+    const count = list.length;
+    const totalSize = list.reduce((sum, it) => sum + (Number(it.size) || 0), 0);
+    const elProjects = document.getElementById('statProjects');
+    const elUploads = document.getElementById('statUploads');
+    const elSize = document.getElementById('statSize');
+    if (elProjects) elProjects.textContent = String(uniquePaths.size || count);
+    if (elUploads) elUploads.textContent = String(count);
+    if (elSize) elSize.textContent = formatFileSize(totalSize);
+}
+
 function updateHistory(items) {
     const historyListEl = document.getElementById('historyList');
     if (!historyListEl) return;
 
     if (!items || items.length === 0) {
         historyListEl.innerHTML = '<div style="color: var(--text-3); text-align: center; padding: 40px;">暂无上传记录</div>';
+        updateStats([]);
         return;
     }
 
     historyListEl.innerHTML = items.map((item, idx) => `
-        <div class="file-item" style="cursor: pointer;" onclick="openHistoryRepo('${escapeHtml(item.repoUrl || '')}')">
+        <div class="file-item" style="cursor: pointer;" data-url="${escapeHtml(item.repoUrl || '')}" data-idx="${idx}">
             <div class="file-info">
                 <div class="file-name" style="font-weight: 600;">${escapeHtml(item.name)}</div>
                 <div class="file-size">${escapeHtml(item.path || '')} • ${formatDate(item.uploadTime)}</div>
             </div>
         </div>
     `).join('');
+
+    updateStats(items);
 }
 
 function openHistoryRepo(url) {
     if (url) sendToCSharp('openUrl', { url });
 }
 
+// 绑定历史记录点击（事件委托）
+document.addEventListener('click', (ev) => {
+    const item = ev.target.closest('.file-item[data-url]');
+    if (!item) return;
+    const url = item.getAttribute('data-url') || '';
+    if (url) sendToCSharp('openUrl', { url });
+});
+
 function loadSettings(data) {
     const branchEl = document.getElementById('settingDefaultBranch');
-    const commitEl = document.getElementById('settingDefaultCommit');
+    const commitEl = document.getElementById('settingDefaultCommitMessage');
     const proxyAddrEl = document.getElementById('settingProxyAddress');
     const proxyPortEl = document.getElementById('settingProxyPort');
     const gitignoreEl = document.getElementById('settingDefaultGitignore');
+    const platformEl = document.getElementById('settingPlatform');
+    const gitlabUrlEl = document.getElementById('settingGitLabUrl');
 
     if (branchEl) branchEl.value = data.defaultBranch || 'main';
     if (commitEl) commitEl.value = data.defaultCommitMessage || 'Update from GitUploadTool';
     if (proxyAddrEl) proxyAddrEl.value = data.proxyAddress || '';
     if (proxyPortEl) proxyPortEl.value = data.proxyPort ?? '';
+    if (gitignoreEl) gitignoreEl.value = data.defaultGitignore || '';
+    if (platformEl) platformEl.value = data.platform || 'github';
+    if (gitlabUrlEl) gitlabUrlEl.value = data.gitLabInstanceUrl || 'https://gitlab.com';
 }
 
 // ============ Event Listeners ============
@@ -302,6 +350,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') onTokenLoginClick();
     });
 
+
+
+    // 切换平台时显示/隐藏 GitLab URL 输入框
+    const loginPlatformEl = document.getElementById('loginPlatform');
+    const gitlabUrlInput = document.getElementById('gitlabUrlInput');
+    if (loginPlatformEl && gitlabUrlInput) {
+        function updateGitlabUrlVisibility() {
+            if (loginPlatformEl.value === 'gitlab') {
+                gitlabUrlInput.style.display = 'block';
+            } else {
+                gitlabUrlInput.style.display = 'none';
+            }
+        }
+        loginPlatformEl.addEventListener('change', updateGitlabUrlVisibility);
+        updateGitlabUrlVisibility();
+    }
+
     function onTokenLoginClick() {
         const token = document.getElementById('tokenInput')?.value.trim();
         if (!token) {
@@ -309,7 +374,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         showLoginError('');   // clear old errors
-        sendToCSharp('tokenLogin', { token });
+        sendToCSharp('tokenLogin', {
+            token,
+            platform: document.getElementById('loginPlatform')?.value || 'github',
+            gitlabUrl: document.getElementById('gitlabUrlInput')?.value || '',
+        });
     }
 
     // Main page navigation
@@ -425,6 +494,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 defaultCommitMessage: document.getElementById('settingDefaultCommitMessage')?.value || '',
                 proxyAddress: document.getElementById('settingProxyAddress')?.value || '',
                 proxyPort: parseInt(document.getElementById('settingProxyPort')?.value || '0', 10) || null,
+                platform: document.getElementById('settingPlatform')?.value || 'github',
+                gitLabInstanceUrl: document.getElementById('settingGitLabUrl')?.value || 'https://gitlab.com',
                 autoPush: true,
             },
         });
@@ -439,6 +510,80 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============ Utility Functions ============
+
+function showErrorToast(message, owner, repo) {
+    // 识别权限不足场景
+    const needsAdmin = /admin|403/i.test(message);
+    const settingsUrl = (owner && repo)
+        ? `https://github.com/${owner}/${repo}/settings`
+        : null;
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        max-width: 420px;
+        padding: 14px 18px;
+        background: var(--red);
+        color: white;
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 500;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        box-shadow: var(--shadow);
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    `;
+
+    const textNode = document.createElement('div');
+    textNode.textContent = message;
+    toast.appendChild(textNode);
+
+    if (needsAdmin && settingsUrl) {
+        const hint = document.createElement('div');
+        hint.style.cssText = 'margin-top: 8px; font-size: 12px; opacity: 0.95;';
+        hint.textContent = '当前 Token 对该仓库没有 admin 权限（可能是协作者身份）。';
+        toast.appendChild(hint);
+
+        const btnWrap = document.createElement('div');
+        btnWrap.style.cssText = 'margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;';
+
+        const openBtn = document.createElement('button');
+        openBtn.textContent = '打开仓库设置';
+        openBtn.style.cssText = `
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.6);
+            background: transparent;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        `;
+        openBtn.onclick = () => {
+            sendToCSharp('openUrl', { url: settingsUrl });
+            dismiss();
+        };
+        btnWrap.appendChild(openBtn);
+
+        const transferHint = document.createElement('span');
+        transferHint.style.cssText = 'font-size: 11px; opacity: 0.85;';
+        transferHint.textContent = '在 Danger Zone 中可转让所有权';
+        btnWrap.appendChild(transferHint);
+
+        toast.appendChild(btnWrap);
+    }
+
+    document.body.appendChild(toast);
+
+    const dismiss = () => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    };
+    setTimeout(dismiss, 8000);
+}
 
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
@@ -490,4 +635,75 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text == null ? '' : String(text);
     return div.innerHTML;
+}
+
+// ============ Repository Management ============
+
+function renderRepositories(repos) {
+    const repoListEl = document.getElementById('repoList');
+    if (!repoListEl) return;
+
+    if (!repos || repos.length === 0) {
+        repoListEl.innerHTML = '<p style="color: var(--text-3);">暂无仓库，点击“新建仓库”创建一个</p>';
+        return;
+    }
+
+    const owner = (document.getElementById('userName')?.textContent || '').trim();
+
+    let html = '';
+    repos.forEach(repo => {
+        const isPrivate = !!repo.IsPrivate;
+        const visibilityIcon = isPrivate ? '🔒' : '🌐';
+        const visibilityText = isPrivate ? '私有' : '公开';
+        const repoName = escapeHtml(repo.Name || '');
+        const description = escapeHtml((repo.Description || '').trim());
+        const repoUrl = repo.HtmlUrl || repo.html_url || repo.HtmlUrl || '';
+        const updatedAt = formatDate(repo.UpdatedAt);
+        const createdAt = formatDate(repo.CreatedAt);
+
+        html += `
+            <div class="card" style="flex: 1 1 200px; min-width: 180px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${repoName}">${repoName}</div>
+                    <div style="font-size: 12px; color: var(--text-3); white-space: nowrap;">${visibilityIcon}${visibilityText}</div>
+                </div>
+                ${description ? `<div style="color: var(--text-2); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${description}">${description}</div>` : '<div style="color: var(--text-2); font-size: 12px; opacity: .6;">暂无描述</div>'}
+                <div style="color: var(--text-3); font-size: 11px;">创建时间：${createdAt || updatedAt || '未知'}</div>
+                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: auto;">
+                    <button class="btn btn-secondary" style="padding: 0; width: 32px; height: 32px; font-size: 15px; line-height: 1;" title="${isPrivate ? '转为公开' : '转为私有'}" onclick="sendToCSharp('updateRepoVisibility', {owner: '${escapeHtml(owner || '')}', repo: '${repoName}', isPrivate: ${!isPrivate}})">
+                        ${isPrivate ? '🌐' : '🔒'}
+                    </button>
+                    <button class="btn btn-danger" style="padding: 0; width: 32px; height: 32px; font-size: 15px; line-height: 1;" title="删除仓库" onclick="if(confirm('确定删除仓库「${repoName}」吗？此操作不可恢复。')) sendToCSharp('deleteRepository', {owner: '${escapeHtml(owner || '')}', repo: '${repoName}'})">
+                        🗑️
+                    </button>
+                    <button class="btn btn-primary" style="padding: 0; width: 32px; height: 32px; font-size: 15px; line-height: 1;" title="查看仓库" onclick="sendToCSharp('openUrl', {url: '${repoUrl.replace(/'/g, "\\'")}'})">
+                        🔗
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    repoListEl.innerHTML = html;
+}
+
+// 事件监听：刷新仓库列表
+if (document.getElementById('btnRefreshRepos')) {
+    document.getElementById('btnRefreshRepos').addEventListener('click', () => {
+        sendToCSharp('repositories');
+    });
+}
+
+// 切换平台时显示/隐藏 GitLab URL 输入框
+const platformEl = document.getElementById('settingPlatform');
+const gitlabUrlRow = document.getElementById('gitlabUrlRow');
+if (platformEl && gitlabUrlRow) {
+    function updateGitlabUrlVisibility() {
+        if (platformEl.value === 'gitlab') {
+            gitlabUrlRow.style.display = 'block';
+        } else {
+            gitlabUrlRow.style.display = 'none';
+        }
+    }
+    platformEl.addEventListener('change', updateGitlabUrlVisibility);
+    updateGitlabUrlVisibility();
 }

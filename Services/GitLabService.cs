@@ -326,18 +326,23 @@ public class GitLabService : IPlatformService
         }
     }
 
-    public async Task<bool> DeleteRepositoryAsync(string owner, string name)
+    public async Task<(bool Success, string? Error)> DeleteRepositoryAsync(string owner, string name)
     {
         try
         {
             var request = await CreateRequestAsync(HttpMethod.Delete, $"/projects/{Uri.EscapeDataString(owner)}%2F{Uri.EscapeDataString(name)}");
             var response = await _httpClient.SendAsync(request);
-            return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
+            if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                return (true, null);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Logger.Warn("Delete project failed: {Status} {Body}", (int)response.StatusCode, body);
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
         }
         catch (Exception ex)
         {
             Logger.Error(ex, $"Failed to delete repository {owner}/{name}");
-            return false;
+            return (false, ex.Message);
         }
     }
 

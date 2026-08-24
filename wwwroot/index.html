@@ -50,8 +50,13 @@
         <!-- 头部 -->
         <header class="header">
             <div class="header-left">
-                <div class="header-logo">📦</div>
-                <span class="header-title">GitUploadTool</span>
+                <nav class="nav-tabs" style="margin: 0; padding: 0; border: 0; background: transparent;">
+                    <button class="nav-tab active" data-tab="home">首页</button>
+                    <button class="nav-tab" data-tab="upload">上传项目</button>
+                    <button class="nav-tab" data-tab="history">历史记录</button>
+                    <button class="nav-tab" data-tab="settings">设置</button>
+                    <button class="nav-tab" data-tab="about">关于</button>
+                </nav>
             </div>
             <div class="header-right">
                 <div class="user-info" id="userInfo">
@@ -63,26 +68,34 @@
             </div>
         </header>
 
-        <!-- 导航标签 -->
-        <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="home">首页</button>
-            <button class="nav-tab" data-tab="upload">上传项目</button>
-            <button class="nav-tab" data-tab="history">历史记录</button>
-            <button class="nav-tab" data-tab="settings">设置</button>
-            <button class="nav-tab" data-tab="about">关于</button>
-        </nav>
-
         <!-- 标签内容 -->
         <main class="tab-content">
             <!-- 首页 -->
             <div id="tab-home" class="tab-pane active">
                 <div class="card fade-in" style="background: linear-gradient(135deg, rgba(108,123,255,0.1), rgba(160,108,255,0.05));">
                     <h2 style="margin-bottom: 8px;">👋 欢迎使用 GitUploadTool</h2>
-                    <p style="color: var(--text-2); margin-bottom: 24px;">快速将本地项目上传到 GitHub 仓库</p>
+                    <p style="color: var(--text-2); margin-bottom: 24px;">快速将本地项目上传到 Git 仓库</p>
                     <button class="btn btn-primary" id="btnStartUpload">
                         <span class="btn-icon">📤</span>
                         开始上传项目
                     </button>
+                </div>
+
+                <div class="card fade-in">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h3 class="card-title" style="margin: 0;">📦 我的仓库</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" id="btnRefreshRepos" style="padding: 6px 12px; font-size: 13px;">
+                                <span class="btn-icon">🔄</span> 刷新
+                            </button>
+                            <button class="btn btn-primary" id="btnNewRepo" style="padding: 6px 12px; font-size: 13px;">
+                                <span class="btn-icon">➕</span> 新建仓库
+                            </button>
+                        </div>
+                    </div>
+                    <div id="repoList" style="display: flex; flex-wrap: wrap; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-1); min-height: 120px;">
+                        <div id="repoListPlaceholder" style="width: 100%; color: var(--text-3); text-align: center; padding: 20px;">点击刷新按钮加载仓库列表</div>
+                    </div>
                 </div>
 
                 <div class="card fade-in">
@@ -319,6 +332,17 @@
                         <div class="settings-item">
                             <label class="form-label">代理端口</label>
                             <input type="number" id="settingProxyPort" class="form-input" placeholder="7890">
+                        </div>
+                        <div class="settings-item">
+                            <label class="form-label">平台</label>
+                            <select id="settingPlatform" class="form-input">
+                                <option value="github">GitHub</option>
+                                <option value="gitlab">GitLab / 自建</option>
+                            </select>
+                        </div>
+                        <div class="settings-item">
+                            <label class="form-label">GitLab 实例地址</label>
+                            <input type="text" id="settingGitLabUrl" class="form-input" placeholder="https://gitlab.com" value="https://gitlab.com">
                         </div>
                     </div>
                     <div style="display: flex; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
